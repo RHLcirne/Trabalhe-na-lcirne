@@ -1277,12 +1277,44 @@ function pontoEmpresa(nome){ return `<span style="display:inline-block;width:9px
 // Os demais podem se recadastrar após este prazo (em meses).
 const CARENCIA_MESES = 6;
 
+// Cada unidade tem: cod (sigla interna), nome (bairro/cidade que o candidato reconhece)
+// e end (endereço da loja — rua e número). Deixe "end" como "" até ter o endereço.
 const UNIDADES = {
-  "Cirne Postos": ["PM1","HE","PE","PN","ZN","PA"],
-  "Cirne Pneus":  ["MT","PO","Prudente","RF","NR","Renovadora","Sto","Mos","JP"],
-  "Cirne Motos":  ["MT","ZN","CM","MC","Sto"],
+  "Cirne Pneus": [
+    {cod:"MT",  nome:"Alecrim",       end:""},
+    {cod:"PO",  nome:"Lagoa Nova",    end:""},
+    {cod:"Pr",  nome:"Arena",         end:""},
+    {cod:"RF",  nome:"Capim Macio",   end:""},
+    {cod:"NR",  nome:"Quintas",       end:""},
+    {cod:"Ren", nome:"Parnamirim",    end:""},
+    {cod:"Sto", nome:"Santo Antônio", end:""},
+    {cod:"MO",  nome:"Mossoró",       end:""},
+    {cod:"JP",  nome:"João Pessoa",   end:""}
+  ],
+  "Cirne Postos": [
+    {cod:"PM1", nome:"Prudente",    end:""},
+    {cod:"HE",  nome:"Hermes",      end:""},
+    {cod:"PE",  nome:"Petrópolis",  end:""},
+    {cod:"PN",  nome:"Ponta Negra", end:""},
+    {cod:"ZN",  nome:"São Gonçalo", end:""},
+    {cod:"PA",  nome:"Parnamirim",  end:""}
+  ],
+  "Cirne Motos": [
+    {cod:"MT", nome:"Natal",         end:""},
+    {cod:"ZN", nome:"São Gonçalo",   end:""},
+    {cod:"CM", nome:"Ceará Mirim",   end:""},
+    {cod:"MC", nome:"Macau",         end:""},
+    {cod:"ST", nome:"Santo Antônio", end:""}
+  ],
   "Cirne Distribuidora de Baterias": []
 };
+
+// Busca o objeto da unidade pela sigla, dentro da empresa
+function uniObj(empresa, cod){ return (UNIDADES[empresa]||[]).find(u=>u.cod===cod)||null; }
+// Rótulo para o CANDIDATO: "Bairro — Rua, 123" (só bairro enquanto não houver endereço)
+function uniCand(empresa, cod){ const u=uniObj(empresa,cod); if(!u) return cod||""; return u.end?`${u.nome} — ${u.end}`:u.nome; }
+// Rótulo para o RH: "Bairro (SIGLA)"
+function uniRH(empresa, cod){ const u=uniObj(empresa,cod); if(!u) return cod||""; return `${u.nome} (${u.cod})`; }
 
 // ══ PERGUNTAS DISC ══
 const DISC_Q = [
@@ -1516,7 +1548,7 @@ window.preencherVagasCandidato = async function(){
   if(uSel && uWrap){
     const unidades = empresa ? (UNIDADES[empresa]||[]) : [];
     if(unidades.length){
-      uSel.innerHTML='<option value="">Selecionar unidade...</option>'+unidades.map(u=>`<option>${u}</option>`).join("");
+      uSel.innerHTML='<option value="">Selecionar unidade...</option>'+unidades.map(u=>`<option value="${u.cod}">${u.end?`${u.nome} — ${u.end}`:u.nome}</option>`).join("");
       uWrap.classList.remove("hidden");
     } else { uSel.innerHTML='<option value="">—</option>'; uWrap.classList.add("hidden"); }
   }
@@ -2324,20 +2356,19 @@ window.preencherFiltroUnidade=function(){
   if(!sel) return;
   const emp=document.getElementById("filterEmpresa")?.value||"";
   const atual=sel.value;
-  let lista=[];
-  if(emp){ lista=UNIDADES[emp]||[]; }
-  else { // visão geral: reúne as unidades de todas as empresas
-    const set=new Set();
-    Object.keys(UNIDADES).forEach(e=>(UNIDADES[e]||[]).forEach(u=>set.add(u)));
-    lista=Array.from(set).sort();
+  if(!emp){ // sem empresa escolhida, o filtro de unidade fica desativado
+    sel.innerHTML='<option value="">Todas as unidades</option>';
+    sel.disabled=true;
+    return;
   }
+  const lista=UNIDADES[emp]||[];
   if(lista.length===0){
     sel.innerHTML='<option value="">Sem unidades</option>';
     sel.disabled=true;
   }else{
     sel.disabled=false;
     sel.innerHTML='<option value="">Todas as unidades</option>'+
-      lista.map(u=>`<option${u===atual?" selected":""}>${u}</option>`).join("");
+      lista.map(u=>`<option value="${u.cod}"${u.cod===atual?" selected":""}>${u.nome} (${u.cod})</option>`).join("");
   }
 };
 
@@ -2432,7 +2463,7 @@ window.preencherUnidades=function(empresa, atual){
   }else{
     sel.disabled=false;
     sel.innerHTML='<option value="">Selecionar unidade...</option>'+
-      us.map(u=>`<option${u===atual?" selected":""}>${u}</option>`).join("");
+      us.map(u=>`<option value="${u.cod}"${u.cod===atual?" selected":""}>${u.nome} (${u.cod})</option>`).join("");
   }
 };
 
@@ -2581,7 +2612,7 @@ function renderVagas(){
   const rows=lista.map(v=>`
     <tr>
       <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)"><b>${pontoEmpresa(v.empresa)}${v.empresa||"—"}</b></td>
-      <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)">${v.unidade?`<span class="vaga-status" style="background:var(--gray1);color:var(--gray6)">${v.unidade}</span>`:'<span style="color:var(--gray4)">—</span>'}</td>
+      <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)">${v.unidade?`<span class="vaga-status" style="background:var(--gray1);color:var(--gray6)">${uniRH(v.empresa,v.unidade)}</span>`:'<span style="color:var(--gray4)">—</span>'}</td>
       <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)">${v.cargo||"—"}${v.salarioDe||v.salarioAte?`<div style="font-size:11px;color:#1A7F45;font-weight:700">${v.salarioDe||""}${v.salarioDe&&v.salarioAte?" a ":""}${v.salarioAte||""}${v.mostrarSalario==="sim"?"":" (interno)"}</div>`:""}${v.observacao?`<div style="font-size:11px;color:var(--gray4)">${v.observacao}</div>`:""}</td>
       <td style="padding:12px 14px;border-bottom:1px solid var(--gray2);text-align:center;font-weight:800">${v.quantidade||1}</td>
       <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)"><span class="vaga-status ${v.status==="aberta"?"vs-aberta":"vs-fechada"}">${v.status==="aberta"?"Aberta":"Fechada"}</span></td>
@@ -2952,7 +2983,7 @@ function buildKanbanCard(c, currentCol){
     </div>`;
   return `<div class="kanban-card">
     <div class="kc-name">${c.nome||"—"}</div>
-    <div class="kc-vaga">${pontoEmpresa(c.empresa)}${c.empresa||"—"}${c.unidade?` · ${c.unidade}`:""} · ${c.vaga||"—"}</div>
+    <div class="kc-vaga">${pontoEmpresa(c.empresa)}${c.empresa||"—"}${c.unidade?` · ${uniRH(c.empresa,c.unidade)}`:""} · ${c.vaga||"—"}</div>
     <span class="kc-disc" style="background:${discColor[c.discPerfil||"D"]||"#999"}">${c.discPerfil||"—"}</span>
     ${fbSelo}
     ${motivoHtml}
@@ -3442,7 +3473,7 @@ window.openModal=function(id){
     <div class="detail-row">
       <span class="dl">Unidade</span>
       <span class="dv" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <span id="uniAtual_${c.id}" style="font-weight:700">${c.unidade||"—"}</span>
+        <span id="uniAtual_${c.id}" style="font-weight:700">${c.unidade?uniRH(c.empresa,c.unidade):"—"}</span>
         <button class="admin-only" onclick="abrirTrocaUnidade('${c.id}')" style="background:var(--gray2);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">✏️ Alterar</button>
       </span>
     </div>
@@ -3451,7 +3482,7 @@ window.openModal=function(id){
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select id="trocaUnidadeSel_${c.id}" style="flex:1;min-width:200px;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff">
           <option value="">— Sem unidade —</option>
-          ${(UNIDADES[c.empresa]||[]).map(u=>`<option${u===c.unidade?" selected":""}>${u}</option>`).join("")}
+          ${(UNIDADES[c.empresa]||[]).map(u=>`<option value="${u.cod}"${u.cod===c.unidade?" selected":""}>${u.nome} (${u.cod})</option>`).join("")}
         </select>
         <button onclick="cancelarTrocaUnidade('${c.id}')" style="background:var(--gray2);color:var(--black);border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Cancelar</button>
         <button onclick="salvarTrocaUnidade('${c.id}')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Salvar</button>
@@ -3530,7 +3561,7 @@ function montarVagaPublica(v){
       <div class="vp-chips">
         <span class="vp-chip">💰 ${salTxt}</span>
         ${v.jornada?`<span class="vp-chip">🕐 ${v.jornada}</span>`:""}
-        ${v.unidade?`<span class="vp-chip">📍 Unidade ${v.unidade}</span>`:""}
+        ${v.unidade?`<span class="vp-chip">📍 ${uniCand(v.empresa,v.unidade)}</span>`:""}
       </div>
       ${v.atividades?`<div class="vp-bloco"><h5>Principais atividades</h5>${linhasParaLista(v.atividades)}</div>`:""}
       ${v.requisitos?`<div class="vp-bloco"><h5>Requisitos</h5>${linhasParaLista(v.requisitos)}</div>`:""}
@@ -3539,7 +3570,7 @@ function montarVagaPublica(v){
 
   return `
     <div class="vp-vaga">
-      <div class="vp-cargo">${v.cargo||"—"}${v.unidade?`<span class="vp-uni">${v.unidade}</span>`:""}</div>
+      <div class="vp-cargo">${v.cargo||"—"}${v.unidade?`<span class="vp-uni">${uniCand(v.empresa,v.unidade)}</span>`:""}</div>
       <div class="vp-qtd">${v.quantidade||1} vaga${(v.quantidade||1)>1?"s":""}</div>
       ${temDetalhe?`<button class="vp-toggle" onclick="alternarDetalheVaga('${v.id}',this)">Ver detalhes ▾</button>`:""}
       ${detalhe}
