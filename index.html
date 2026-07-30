@@ -502,38 +502,17 @@
       <div class="card-title">Qual vaga você busca?</div>
       <div class="card-sub">Selecione a empresa e informe a função de interesse.</div>
       <div class="field"><label>Empresa <span class="req">*</span></label>
-        <select id="s1Empresa">
+        <select id="s1Empresa" onchange="preencherVagasCandidato()">
           <option value="">Selecionar empresa...</option>
           <option>Cirne Motos</option><option>Cirne Postos</option>
           <option>Cirne Pneus</option><option>Cirne Distribuidora de Baterias</option>
         </select>
       </div>
-      <div class="field"><label>Função / Cargo Pretendido <span class="req">*</span></label>
-        <select id="s1Vaga">
-          <option value="">Selecionar...</option>
-          <optgroup label="── Comercial (Vendas)">
-            <option value="vendedor">Vendedor(a) Interno(a)</option>
-            <option value="vendedor">Vendedor(a) Externo(a)</option>
-            <option value="vendedor">Vendedor(a) Online</option>
-            <option value="vendedor">Consultor(a) de Consórcio</option>
-          </optgroup>
-          <optgroup label="── Administrativo">
-            <option value="outro">Auxiliar Administrativo</option>
-            <option value="outro">Assistente Financeiro</option>
-            <option value="outro">Recepcionista</option>
-            <option value="outro">Auxiliar de RH</option>
-          </optgroup>
-          <optgroup label="── Operacional / Técnico">
-            <option value="outro">Mecânico de Motos</option>
-            <option value="outro">Eletricista Automotivo</option>
-            <option value="outro">Frentista</option>
-            <option value="outro">Borracheiro</option>
-            <option value="outro">Auxiliar de Serviços</option>
-          </optgroup>
-          <optgroup label="── Outra função">
-            <option value="outro">Outra função não listada</option>
-          </optgroup>
+      <div class="field"><label>Vaga em aberto <span class="req">*</span></label>
+        <select id="s1Vaga" disabled>
+          <option value="">Selecione a empresa primeiro...</option>
         </select>
+        <div id="s1VagaHint" style="font-size:12px;color:var(--gray4);margin-top:6px">Você verá apenas as vagas em aberto da empresa escolhida.</div>
       </div>
       <div id="vagaOutraWrap" class="field hidden">
         <label>Especifique a função <span class="req">*</span></label>
@@ -1317,6 +1296,69 @@ document.getElementById("s1Vaga").addEventListener("change", function(){
   const val = this.value;
   isVendedor = (val === "vendedor");
 });
+
+// ── VAGAS EM ABERTO NO CADASTRO DO CANDIDATO ──
+// O candidato só pode se candidatar às vagas em aberto da empresa escolhida.
+let vagasAbertasCache = null;
+async function getVagasAbertas(){
+  if(vagasAbertasCache) return vagasAbertasCache;
+  try{
+    const snap = await get(child(dbRef,"vagas"));
+    let lista=[];
+    if(snap.exists()){
+      Object.entries(snap.val()).forEach(([k,v])=>lista.push({id:k,...v}));
+    }
+    vagasAbertasCache = lista.filter(v=>v.status==="aberta");
+  }catch(e){
+    console.error("Falha ao carregar vagas em aberto:",e);
+    vagasAbertasCache = [];
+  }
+  return vagasAbertasCache;
+}
+
+// Mantém as avaliações de vendedor: detecta cargos de vendas pelo nome
+function ehCargoVendedor(cargo){
+  return /vendedor|vendas|consultor|comercial|corretor/i.test(cargo||"");
+}
+
+// Preenche o campo de vaga com APENAS as vagas em aberto da empresa selecionada
+window.preencherVagasCandidato = async function(){
+  const empresa = document.getElementById("s1Empresa").value;
+  const sel = document.getElementById("s1Vaga");
+  const hint = document.getElementById("s1VagaHint");
+  isVendedor = false;
+  if(!sel) return;
+  if(!empresa){
+    sel.innerHTML = '<option value="">Selecione a empresa primeiro...</option>';
+    sel.disabled = true;
+    if(hint) hint.textContent = "Você verá apenas as vagas em aberto da empresa escolhida.";
+    return;
+  }
+  sel.disabled = true;
+  sel.innerHTML = '<option value="">Carregando vagas...</option>';
+  const todas = await getVagasAbertas();
+  const daEmpresa = todas.filter(v => (v.empresa||"") === empresa);
+  // Remove cargos repetidos (a mesma função pode estar aberta em várias unidades)
+  const vistos = new Set();
+  const cargos = [];
+  daEmpresa.forEach(v=>{
+    const nome = (v.cargo||"").trim();
+    if(!nome || vistos.has(nome.toLowerCase())) return;
+    vistos.add(nome.toLowerCase());
+    cargos.push(nome);
+  });
+  cargos.sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  if(cargos.length===0){
+    sel.innerHTML = '<option value="">Nenhuma vaga em aberto para esta empresa</option>';
+    sel.disabled = true;
+    if(hint) hint.textContent = "No momento não há vagas em aberto para esta empresa. Acompanhe nossos canais e volte em breve.";
+    return;
+  }
+  sel.innerHTML = '<option value="">Selecionar vaga...</option>' +
+    cargos.map(c=>`<option value="${ehCargoVendedor(c)?"vendedor":"outro"}">${c}</option>`).join("");
+  sel.disabled = false;
+  if(hint) hint.textContent = `${cargos.length} vaga${cargos.length>1?"s":""} em aberto para ${empresa}.`;
+};
 
 // BUILD QUESTION BLOCKS
 function buildQuestions(questions, containerId, totalQuestions, btnId, prefix, qtype){
@@ -2917,13 +2959,8 @@ async function carregarVagasPublicas(){
   const host=document.getElementById("vagasPublicas");
   if(!host) return;
   try{
-    const snap=await get(child(dbRef,"vagas"));
-    let lista=[];
-    if(snap.exists()){
-      Object.entries(snap.val()).forEach(([k,v])=>lista.push({id:k,...v}));
-    }
-    // Apenas vagas abertas
-    lista=lista.filter(v=>v.status==="aberta");
+    // Mesma fonte usada no cadastro do candidato (apenas vagas em aberto)
+    const lista=(await getVagasAbertas()).slice();
     if(lista.length===0){
       host.innerHTML='<div class="vagas-pub-load">No momento não há vagas em aberto.<br>Cadastre-se mesmo assim — seu currículo ficará em nosso banco de talentos.</div>';
       return;
