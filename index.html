@@ -802,6 +802,7 @@
         onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
       <div id="adminErr" class="hidden" style="color:var(--red);font-size:13px;margin-bottom:12px">Usuário ou senha incorretos.</div>
       <button class="btn btn-primary" onclick="doAdminLogin()" style="margin-top:6px">Entrar</button>
+      <div style="text-align:center;margin-top:12px"><a href="javascript:void(0)" onclick="abrirEsqueciSenha()" style="font-size:12px;color:var(--gray6);text-decoration:underline">Esqueci minha senha</a></div>
       <button class="btn btn-ghost" onclick="showScreen('screenWelcome')" style="margin-top:10px">← Voltar ao portal</button>
     </div>
   </div>
@@ -846,6 +847,7 @@
       <div class="admin-tab" onclick="switchTab('tabKanban',this)">📌 Pipeline Kanban <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="event.stopPropagation()">i<span class="tip">Quadro visual das etapas do processo; cada candidato é um cartão que você move de uma etapa para outra.</span></span></div>
       <div class="admin-tab" onclick="switchTab('tabVagas',this)">💼 Vagas Abertas <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="event.stopPropagation()">i<span class="tip">Onde você cadastra e gerencia as vagas de cada empresa (abrir, fechar e editar).</span></span></div>
       <div class="admin-tab" onclick="switchTab('tabTalentos',this)">🎯 Banco de Talentos <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="event.stopPropagation()">i<span class="tip">Candidatos já avaliados, guardados para futuras oportunidades (mesmo sem vaga aberta no momento).</span></span></div>
+      <div class="admin-tab admin-only" onclick="switchTab('tabConfig',this)">⚙️ Configuração <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="event.stopPropagation()">i<span class="tip">Gerencie os logins e acessos da plataforma: criar, editar, excluir usuários e redefinir senhas.</span></span></div>
     </div>
 
     <!-- TAB: DASHBOARD -->
@@ -1031,6 +1033,52 @@
 
       <div id="talentosLista"></div>
     </div>
+
+    <!-- ══ ABA: CONFIGURAÇÃO (gestão de logins e acessos) ══ -->
+    <div id="tabConfig" class="hidden">
+      <div class="vagas-head">
+        <div>
+          <h2 style="font-size:18px;font-weight:800">⚙️ Configuração — Logins e Acessos</h2>
+          <div style="font-size:12px;color:var(--gray6)">Crie e gerencie os acessos da plataforma. As senhas novas têm 6 dígitos.</div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid var(--gray2);border-radius:12px;padding:18px;margin-bottom:18px">
+        <div id="cfgFormTitulo" style="font-weight:800;margin-bottom:12px">➕ Novo login</div>
+        <input type="hidden" id="cfgEditId" value="">
+        <div class="field-row">
+          <div class="field"><label>Login (usuário) <span class="req">*</span></label><input type="text" id="cfgLogin" placeholder="ex.: joao.silva"></div>
+          <div class="field"><label>Nome <span class="req">*</span></label><input type="text" id="cfgNome" placeholder="Nome da pessoa"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>E-mail profissional <span class="req">*</span></label><input type="email" id="cfgEmail" placeholder="pessoa@grupolcirne.com.br"></div>
+          <div class="field"><label>Senha (6 dígitos) <span class="req">*</span></label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="cfgSenha" placeholder="000000" maxlength="6" inputmode="numeric" style="flex:1">
+              <button type="button" class="btn-nova-vaga" style="background:var(--gray6)" onclick="document.getElementById('cfgSenha').value=gerarSenha6()">🎲 Gerar</button>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Perfil de acesso <span class="req">*</span></label>
+            <select id="cfgRole" onchange="cfgToggleEmpresa()">
+              <option value="total">Visão total (grupo + Administração)</option>
+              <option value="gg">Gerente — travado numa empresa</option>
+            </select>
+          </div>
+          <div class="field" id="cfgEmpresaWrap" style="display:none"><label>Empresa (do gerente) <span class="req">*</span></label>
+            <select id="cfgEmpresa"></select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <button type="button" class="btn btn-primary" style="width:auto" onclick="salvarUsuario()">Salvar login</button>
+          <button type="button" class="btn btn-ghost" style="width:auto" onclick="cfgLimparForm()">Limpar</button>
+        </div>
+      </div>
+
+      <div id="cfgSolicitacoes"></div>
+      <div id="cfgListaUsuarios"></div>
+    </div>
   </div>
 </div>
 
@@ -1125,6 +1173,32 @@ const ADMIN_USERS = {
 let currentUser = null;
 function isTotal(){ return currentUser && currentUser.role==="total"; }
 function empresaTravada(){ return currentUser && currentUser.role==="gg" ? currentUser.empresa : null; }
+
+// ══ USUÁRIOS CRIADOS PELO RH (armazenados no Firebase, node "usuarios") ══
+// Os ADMIN_USERS acima são contas fixas de segurança (não podem ser removidas,
+// evitam que todos fiquem bloqueados para fora).
+let appUsers = {};
+async function carregarUsuarios(){
+  try{ const snap=await get(child(dbRef,"usuarios")); appUsers = snap.exists()?snap.val():{}; }
+  catch(e){ console.error("Falha ao carregar usuários:",e); appUsers={}; }
+  return appUsers;
+}
+function getUser(login){ return (appUsers && appUsers[login]) || ADMIN_USERS[login] || null; }
+function ehUsuarioFixo(login){ return Object.prototype.hasOwnProperty.call(ADMIN_USERS, login); }
+function gerarSenha6(){ return String(Math.floor(100000+Math.random()*900000)); }
+
+// ══ EmailJS — envio automático da senha por e-mail ══
+// Preencha com os 3 códigos da sua conta gratuita em emailjs.com.
+// Enquanto estiverem vazios, o "Esqueci minha senha" vira uma solicitação ao RH.
+const EMAILJS_CONFIG = { publicKey:"", serviceId:"", templateId:"" };
+function emailjsPronto(){ return !!(EMAILJS_CONFIG.publicKey && EMAILJS_CONFIG.serviceId && EMAILJS_CONFIG.templateId); }
+async function enviarSenhaPorEmail(email, nome, login, senha){
+  if(!window.emailjs){
+    await new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  }
+  window.emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+  return window.emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, { to_email:email, to_name:nome||login, login, senha });
+}
 
 // PIPELINE COLUMNS
 const PIPELINE = [
@@ -2100,10 +2174,14 @@ window.exportarTalentos=function(){
 // Para persistir entre abas/dias, troque por localStorage
 const SESSION_KEY = "cirne_rh_logged";
 
-window.doAdminLogin=function(){
+window.doAdminLogin=async function(){
   const u=document.getElementById("adminUser").value.trim();
   const p=document.getElementById("adminPass").value;
-  const conta=ADMIN_USERS[u];
+  const btn=document.querySelector('#screenAdminLogin .btn-primary');
+  if(btn){ btn.disabled=true; btn.dataset.txt=btn.textContent; btn.textContent="Entrando..."; }
+  await carregarUsuarios();
+  if(btn){ btn.disabled=false; btn.textContent=btn.dataset.txt||"Entrar"; }
+  const conta=getUser(u);
   if(conta && conta.senha===p){
     document.getElementById("adminErr").classList.add("hidden");
     currentUser={ login:u, ...conta };
@@ -2984,15 +3062,166 @@ window.moveCandidate=async function(candId, newCol, motivo){
   }catch(e){ showToast("Erro ao mover: "+(e?.message||e)); console.error(e); }
 };
 
+// ══ CONFIGURAÇÃO — GESTÃO DE LOGINS E ACESSOS ══
+window.cfgToggleEmpresa=function(){
+  const role=document.getElementById("cfgRole").value;
+  const sel=document.getElementById("cfgEmpresa");
+  if(sel && !sel.options.length){ sel.innerHTML=EMPRESAS.map(e=>`<option>${e}</option>`).join(""); }
+  document.getElementById("cfgEmpresaWrap").style.display = role==="gg" ? "" : "none";
+};
+window.cfgLimparForm=function(){
+  ["cfgEditId","cfgLogin","cfgNome","cfgEmail","cfgSenha"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("cfgLogin").disabled=false;
+  document.getElementById("cfgRole").value="total";
+  document.getElementById("cfgFormTitulo").textContent="➕ Novo login";
+  cfgToggleEmpresa();
+};
+
+async function renderConfig(){
+  await carregarUsuarios();
+  cfgToggleEmpresa();
+  const linha=(login,u,fixo)=>`
+    <tr>
+      <td style="padding:11px 12px;border-bottom:1px solid var(--gray2)"><b>${login}</b>${login===currentUser.login?' <span style="font-size:10px;color:var(--gray4)">(você)</span>':''}</td>
+      <td style="padding:11px 12px;border-bottom:1px solid var(--gray2)">${u.nome||"—"}</td>
+      <td style="padding:11px 12px;border-bottom:1px solid var(--gray2);font-size:12px">${u.email||"—"}</td>
+      <td style="padding:11px 12px;border-bottom:1px solid var(--gray2)">${u.role==="total"?"Visão total":"Gerente · "+(u.empresa||"—")}</td>
+      <td style="padding:11px 12px;border-bottom:1px solid var(--gray2);white-space:nowrap">
+        ${fixo?'<span style="font-size:11px;color:var(--gray4)">conta fixa</span>':`
+          <button class="vaga-act" onclick="editarUsuario('${login}')">✏️ Editar</button>
+          <button class="vaga-act" onclick="resetarSenhaUsuario('${login}')">🔑 Redefinir senha</button>
+          <button class="vaga-act danger" onclick="excluirUsuario('${login}')">🗑️</button>`}
+      </td>
+    </tr>`;
+  const rows = Object.entries(appUsers||{}).map(([l,u])=>linha(l,u,false)).join("")
+             + Object.entries(ADMIN_USERS).map(([l,u])=>linha(l,u,true)).join("");
+  document.getElementById("cfgListaUsuarios").innerHTML=`
+    <div style="background:#fff;border:1px solid var(--gray2);border-radius:12px;overflow:hidden">
+      <div style="padding:12px 14px;font-weight:800;border-bottom:1px solid var(--gray2)">Logins cadastrados</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--gray1)">
+          ${["Login","Nome","E-mail","Perfil","Ações"].map(h=>`<th style="text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;color:var(--gray6)">${h}</th>`).join("")}
+        </tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+  renderSolicitacoes();
+}
+
+window.salvarUsuario=async function(){
+  const editId=document.getElementById("cfgEditId").value;
+  const login=document.getElementById("cfgLogin").value.trim();
+  const nome=document.getElementById("cfgNome").value.trim();
+  const email=document.getElementById("cfgEmail").value.trim();
+  const senha=document.getElementById("cfgSenha").value.trim();
+  const role=document.getElementById("cfgRole").value;
+  const empresa= role==="gg" ? document.getElementById("cfgEmpresa").value : null;
+  if(!login||!nome||!email){ showToast("Preencha login, nome e e-mail."); return; }
+  if(!/^\d{6}$/.test(senha)){ showToast("A senha deve ter exatamente 6 dígitos."); return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ showToast("E-mail inválido."); return; }
+  if(!editId && (ehUsuarioFixo(login) || (appUsers&&appUsers[login]))){ showToast("Já existe um login com esse nome."); return; }
+  try{
+    await set(ref(db,`usuarios/${login}`), { senha, nome, email, role, empresa });
+    showToast("✅ Login salvo com sucesso.");
+    cfgLimparForm();
+    renderConfig();
+  }catch(e){ showToast("Erro ao salvar: "+(e?.message||e)); console.error(e); }
+};
+
+window.editarUsuario=function(login){
+  const u=(appUsers||{})[login]; if(!u) return;
+  document.getElementById("cfgEditId").value=login;
+  document.getElementById("cfgLogin").value=login;
+  document.getElementById("cfgLogin").disabled=true;
+  document.getElementById("cfgNome").value=u.nome||"";
+  document.getElementById("cfgEmail").value=u.email||"";
+  document.getElementById("cfgSenha").value=u.senha||"";
+  document.getElementById("cfgRole").value=u.role||"total";
+  cfgToggleEmpresa();
+  if(u.role==="gg"&&u.empresa) document.getElementById("cfgEmpresa").value=u.empresa;
+  document.getElementById("cfgFormTitulo").textContent="✏️ Editar login: "+login;
+  document.getElementById("tabConfig").scrollIntoView({behavior:"smooth",block:"start"});
+};
+
+window.excluirUsuario=async function(login){
+  if(login===currentUser.login){ showToast("Você não pode excluir o próprio login."); return; }
+  if(!confirm(`Excluir o login "${login}"? A pessoa perderá o acesso.`)) return;
+  try{ await remove(ref(db,`usuarios/${login}`)); showToast(`✅ Login "${login}" excluído.`); renderConfig(); }
+  catch(e){ showToast("Erro ao excluir: "+(e?.message||e)); console.error(e); }
+};
+
+window.resetarSenhaUsuario=async function(login){
+  const u=(appUsers||{})[login]; if(!u) return;
+  const nova=gerarSenha6();
+  try{
+    await update(ref(db,`usuarios/${login}`), { senha:nova });
+    if(emailjsPronto() && u.email){
+      try{ await enviarSenhaPorEmail(u.email, u.nome, login, nova); showToast(`✅ Nova senha enviada para ${u.email}`); }
+      catch(e){ console.error(e); alert(`Senha redefinida, mas o e-mail falhou.\n\nNova senha de "${login}": ${nova}\nRepasse manualmente.`); }
+    } else {
+      alert(`Nova senha de "${login}": ${nova}\n\nRepasse ao usuário. (Configure o EmailJS para envio automático.)`);
+    }
+    renderConfig();
+  }catch(e){ showToast("Erro ao redefinir: "+(e?.message||e)); console.error(e); }
+};
+
+let cfgSolic=[];
+async function renderSolicitacoes(){
+  const host=document.getElementById("cfgSolicitacoes"); if(!host) return;
+  try{
+    const snap=await get(child(dbRef,"solicitacoesSenha"));
+    cfgSolic = snap.exists()? Object.entries(snap.val()).map(([k,v])=>({id:k,...v})).filter(s=>!s.atendido) : [];
+  }catch(e){ cfgSolic=[]; }
+  if(!cfgSolic.length){ host.innerHTML=""; return; }
+  host.innerHTML=`
+    <div style="background:var(--warn-lt);border:1px solid var(--warn);border-radius:12px;padding:14px;margin-bottom:18px">
+      <div style="font-weight:800;margin-bottom:8px;color:#8A6300">🔔 Solicitações de redefinição de senha (${cfgSolic.length})</div>
+      ${cfgSolic.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid rgba(0,0,0,.08)">
+        <span style="font-size:13px">${s.login?`<b>${s.login}</b> · `:""}${s.email||s.chave||"—"} <span style="color:var(--gray6);font-size:11px">${s.data?fmtDate(s.data):""}</span></span>
+        <span style="display:flex;gap:6px">
+          ${s.login&&(appUsers||{})[s.login]?`<button class="vaga-act" onclick="resetarSenhaUsuario('${s.login}');atenderSolicitacao('${s.id}')">🔑 Gerar e enviar</button>`:""}
+          <button class="vaga-act" onclick="atenderSolicitacao('${s.id}')">✓ Marcar resolvida</button>
+        </span>
+      </div>`).join("")}
+    </div>`;
+}
+window.atenderSolicitacao=async function(id){
+  try{ await update(ref(db,`solicitacoesSenha/${id}`), { atendido:true }); renderSolicitacoes(); }catch(e){ console.error(e); }
+};
+
+// "Esqueci minha senha" na tela de login
+window.abrirEsqueciSenha=async function(){
+  const quem=prompt("Informe seu login OU seu e-mail profissional para redefinir a senha:");
+  if(!quem) return;
+  const q=quem.trim();
+  await carregarUsuarios();
+  let login=null,u=null;
+  if((appUsers||{})[q]){ login=q; u=appUsers[q]; }
+  else { for(const [l,x] of Object.entries(appUsers||{})){ if((x.email||"").toLowerCase()===q.toLowerCase()){ login=l; u=x; break; } } }
+  if(login && u && emailjsPronto() && u.email){
+    const nova=gerarSenha6();
+    try{
+      await update(ref(db,`usuarios/${login}`), { senha:nova });
+      await enviarSenhaPorEmail(u.email, u.nome, login, nova);
+      showToast("✅ Enviamos uma nova senha para seu e-mail profissional.");
+      return;
+    }catch(e){ console.error(e); }
+  }
+  try{
+    const r=push(ref(db,"solicitacoesSenha"));
+    await set(r, { chave:q, login:login||"", email:(u&&u.email)||(q.includes("@")?q:""), data:new Date().toISOString(), atendido:false });
+    showToast("✅ Solicitação enviada ao RH. Em breve você receberá uma nova senha.");
+  }catch(e){ showToast("Não foi possível registrar a solicitação agora."); console.error(e); }
+};
+
 // TAB SWITCH
 window.switchTab=function(tabId, el){
-  ["tabDashboard","tabLista","tabKanban","tabVagas","tabTalentos"].forEach(t=>document.getElementById(t).classList.add("hidden"));
+  ["tabDashboard","tabLista","tabKanban","tabVagas","tabTalentos","tabConfig"].forEach(t=>{const e=document.getElementById(t);if(e)e.classList.add("hidden");});
   document.getElementById(tabId).classList.remove("hidden");
   document.querySelectorAll(".admin-tab").forEach(t=>t.classList.remove("active"));
   el.classList.add("active");
   if(tabId==="tabDashboard") renderDashboard();
   if(tabId==="tabVagas") renderVagas();
   if(tabId==="tabTalentos") renderTalentos();
+  if(tabId==="tabConfig") renderConfig();
   if(tabId==="tabKanban"){ renderKanban(); requestAnimationFrame(fitKanbanHeight); }
 };
 
@@ -3217,14 +3446,18 @@ carregarVagasPublicas();
 // Verificar sessão persistida ao carregar a página
 if(window.location.search.includes("admin")){
   const savedSession = sessionStorage.getItem(SESSION_KEY);
-  if(savedSession && ADMIN_USERS[savedSession]){
-    // Sessão válida — entra direto no painel sem pedir senha
-    currentUser={ login:savedSession, ...ADMIN_USERS[savedSession] };
-    aplicarPerfil();
-    loadAdmin();
-  } else {
-    showScreen("screenAdminLogin");
-  }
+  (async ()=>{
+    if(savedSession){ await carregarUsuarios(); }
+    const conta = savedSession ? getUser(savedSession) : null;
+    if(conta){
+      // Sessão válida — entra direto no painel sem pedir senha
+      currentUser={ login:savedSession, ...conta };
+      aplicarPerfil();
+      loadAdmin();
+    } else {
+      showScreen("screenAdminLogin");
+    }
+  })();
 }
 </script>
 </body>
