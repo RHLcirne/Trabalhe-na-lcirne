@@ -528,6 +528,9 @@
           <option>Cirne Pneus</option><option>Cirne Distribuidora de Baterias</option>
         </select>
       </div>
+      <div class="field hidden" id="s1UnidadeWrap"><label>Unidade <span class="req">*</span></label>
+        <select id="s1Unidade"><option value="">Selecione a empresa primeiro...</option></select>
+      </div>
       <div class="field"><label>Vaga em aberto <span class="req">*</span></label>
         <select id="s1Vaga" disabled>
           <option value="">Selecione a empresa primeiro...</option>
@@ -1507,6 +1510,16 @@ window.preencherVagasCandidato = async function(){
   const hint = document.getElementById("s1VagaHint");
   isVendedor = false;
   isGerenteComercial = false;
+  // Unidades da empresa escolhida (empresas sem unidades não mostram o campo)
+  const uWrap=document.getElementById("s1UnidadeWrap");
+  const uSel=document.getElementById("s1Unidade");
+  if(uSel && uWrap){
+    const unidades = empresa ? (UNIDADES[empresa]||[]) : [];
+    if(unidades.length){
+      uSel.innerHTML='<option value="">Selecionar unidade...</option>'+unidades.map(u=>`<option>${u}</option>`).join("");
+      uWrap.classList.remove("hidden");
+    } else { uSel.innerHTML='<option value="">—</option>'; uWrap.classList.add("hidden"); }
+  }
   if(!sel) return;
   if(!empresa){
     sel.innerHTML = '<option value="">Selecione a empresa primeiro...</option>';
@@ -1784,7 +1797,9 @@ window.togglePrimeiroEmprego=function(){
 window.goStep=async function(step){
   // Validações antes de avançar
   if(step===2){
-    if(!document.getElementById("s1Empresa").value){showToast("Selecione a empresa");return;}
+    const empSel=document.getElementById("s1Empresa").value;
+    if(!empSel){showToast("Selecione a empresa");return;}
+    if((UNIDADES[empSel]||[]).length && !document.getElementById("s1Unidade").value){showToast("Selecione a unidade");return;}
     if(!document.getElementById("s1Vaga").value){showToast("Selecione a função desejada");return;}
   }
   if(step===3){
@@ -1911,6 +1926,7 @@ window.submitAll=async function(){
 
   const candidato={
     empresa:document.getElementById("s1Empresa").value,
+    unidade:document.getElementById("s1Unidade").value,
     vaga:vagaLabel,
     tipoVaga:isGerenteComercial?"gerente_comercial":(isVendedor?"vendedor":"outro"),
     nome:document.getElementById("s2Nome").value,
@@ -2378,10 +2394,12 @@ function getFilteredCandidates(){
   const q=(document.getElementById("filterNome")?.value||"").toLowerCase();
   const trava=empresaTravada();
   const emp = trava || (document.getElementById("filterEmpresa")?.value||"");
+  const uni = document.getElementById("filterUnidade")?.value||"";
   const disc=document.getElementById("filterDisc")?.value||"";
   return allCandidates.filter(c=>{
     if(q&&!((c.nome||"").toLowerCase().includes(q)||(c.vaga||"").toLowerCase().includes(q)))return false;
     if(emp&&c.empresa!==emp)return false;
+    if(uni&&c.unidade!==uni)return false;
     if(disc&&c.discPerfil!==disc)return false;
     return true;
   });
@@ -2934,7 +2952,7 @@ function buildKanbanCard(c, currentCol){
     </div>`;
   return `<div class="kanban-card">
     <div class="kc-name">${c.nome||"—"}</div>
-    <div class="kc-vaga">${pontoEmpresa(c.empresa)}${c.empresa||"—"} · ${c.vaga||"—"}</div>
+    <div class="kc-vaga">${pontoEmpresa(c.empresa)}${c.empresa||"—"}${c.unidade?` · ${c.unidade}`:""} · ${c.vaga||"—"}</div>
     <span class="kc-disc" style="background:${discColor[c.discPerfil||"D"]||"#999"}">${c.discPerfil||"—"}</span>
     ${fbSelo}
     ${motivoHtml}
@@ -3119,6 +3137,25 @@ window.salvarTrocaEmpresa=async function(id){
     openModal(id);            // recarrega o perfil com o novo valor
     renderKanban(); renderTable(); renderStats(); renderDashboard(); renderTalentos();
   }catch(e){ showToast("Erro ao alterar empresa: "+(e?.message||e)); console.error(e); }
+};
+
+window.abrirTrocaUnidade=function(id){
+  if(!isTotal()){ showToast("Alterar unidade é restrito à Diretoria / RH"); return; }
+  const w=document.getElementById("trocaUnidadeWrap_"+id); if(w) w.classList.remove("hidden");
+};
+window.cancelarTrocaUnidade=function(id){
+  const w=document.getElementById("trocaUnidadeWrap_"+id); if(w) w.classList.add("hidden");
+};
+window.salvarTrocaUnidade=async function(id){
+  const c=allCandidates.find(x=>x.id===id); if(!c) return;
+  const nova=document.getElementById("trocaUnidadeSel_"+id).value;
+  try{
+    await update(ref(db,`candidatos/${id}`),{ unidade:nova });
+    c.unidade=nova;
+    showToast(nova?`✅ Unidade definida: ${nova}`:"✅ Unidade removida");
+    openModal(id);
+    renderKanban(); renderTable(); renderStats(); renderDashboard(); renderTalentos();
+  }catch(e){ showToast("Erro ao alterar unidade: "+(e?.message||e)); console.error(e); }
 };
 
 window.moveCandidate=async function(candId, newCol, motivo){
@@ -3400,6 +3437,24 @@ window.openModal=function(id){
         </select>
         <button onclick="cancelarTrocaEmpresa('${c.id}')" style="background:var(--gray2);color:var(--black);border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Cancelar</button>
         <button onclick="salvarTrocaEmpresa('${c.id}')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Salvar</button>
+      </div>
+    </div>
+    <div class="detail-row">
+      <span class="dl">Unidade</span>
+      <span class="dv" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <span id="uniAtual_${c.id}" style="font-weight:700">${c.unidade||"—"}</span>
+        <button class="admin-only" onclick="abrirTrocaUnidade('${c.id}')" style="background:var(--gray2);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">✏️ Alterar</button>
+      </span>
+    </div>
+    <div id="trocaUnidadeWrap_${c.id}" class="hidden" style="background:var(--gray1);border:1px solid var(--gray2);border-radius:10px;padding:14px;margin:6px 0 14px">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--gray6);margin-bottom:8px">Definir / alterar a unidade do candidato</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="trocaUnidadeSel_${c.id}" style="flex:1;min-width:200px;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff">
+          <option value="">— Sem unidade —</option>
+          ${(UNIDADES[c.empresa]||[]).map(u=>`<option${u===c.unidade?" selected":""}>${u}</option>`).join("")}
+        </select>
+        <button onclick="cancelarTrocaUnidade('${c.id}')" style="background:var(--gray2);color:var(--black);border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Cancelar</button>
+        <button onclick="salvarTrocaUnidade('${c.id}')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Salvar</button>
       </div>
     </div>
     <div class="detail-row"><span class="dl">Função</span><span class="dv">${c.vaga||"—"}</span></div>
