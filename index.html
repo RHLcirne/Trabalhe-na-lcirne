@@ -841,11 +841,11 @@
 
     <!-- TABS -->
     <div class="admin-tabs">
-      <div class="admin-tab active" onclick="switchTab('tabDashboard',this)">📊 Dashboard</div>
-      <div class="admin-tab" onclick="switchTab('tabLista',this)">📋 Lista de Candidatos</div>
-      <div class="admin-tab" onclick="switchTab('tabKanban',this)">📌 Pipeline Kanban</div>
-      <div class="admin-tab" onclick="switchTab('tabVagas',this)">💼 Vagas Abertas</div>
-      <div class="admin-tab" onclick="switchTab('tabTalentos',this)">🎯 Banco de Talentos</div>
+      <div class="admin-tab active" onclick="switchTab('tabDashboard',this)">📊 Dashboard <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="explicarAba(event,'Painel geral com os principais números do recrutamento (candidatos, vagas, aprovados, etc.). É a visão de resumo do processo.')">i</span></div>
+      <div class="admin-tab" onclick="switchTab('tabLista',this)">📋 Lista de Candidatos <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="explicarAba(event,'Lista com todos os candidatos cadastrados, com busca e filtros para você encontrar quem procura.')">i</span></div>
+      <div class="admin-tab" onclick="switchTab('tabKanban',this)">📌 Pipeline Kanban <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="explicarAba(event,'Quadro visual das etapas do processo seletivo. Cada candidato é um cartão que você move de uma coluna (etapa) para outra — do cadastro até a aprovação.')">i</span></div>
+      <div class="admin-tab" onclick="switchTab('tabVagas',this)">💼 Vagas Abertas <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="explicarAba(event,'Onde você cadastra e gerencia as vagas de cada empresa: abrir, fechar e editar.')">i</span></div>
+      <div class="admin-tab" onclick="switchTab('tabTalentos',this)">🎯 Banco de Talentos <span class="help" tabindex="0" role="button" aria-label="O que é esta aba" onclick="explicarAba(event,'Candidatos já avaliados que ficam guardados para futuras oportunidades, mesmo quando não há vaga aberta no momento.')">i</span></div>
     </div>
 
     <!-- TAB: DASHBOARD -->
@@ -1234,6 +1234,9 @@ function showToast(msg,dur=3000){
   t.textContent=msg; t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),dur);
 }
+window.showToast=showToast;
+// Explica o nome de uma aba numa faixa (usado nos ⓘ das abas, que ficam em barra rolável)
+window.explicarAba=function(ev, texto){ ev.stopPropagation(); showToast(texto, 7000); };
 
 function fmtMesAno(v){
   if(!v) return "—";
