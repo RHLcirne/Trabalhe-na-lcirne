@@ -1356,10 +1356,14 @@ window.preencherVagasCandidato = async function(){
     if(hint) hint.textContent = "No momento não há vaga em aberto para esta empresa. Você pode se cadastrar em nosso Banco de Talentos e será considerado(a) em futuras oportunidades.";
     return;
   }
-  sel.innerHTML = '<option value="">Selecionar vaga...</option>' +
-    cargos.map(c=>`<option value="${ehCargoVendedor(c)?"vendedor":"outro"}">${c}</option>`).join("");
+  // Sempre oferece também o Banco de Talentos (há vagas de substituição que não são divulgadas)
+  const optsVagas = cargos.map(c=>`<option value="${ehCargoVendedor(c)?"vendedor":"outro"}">${c}</option>`).join("");
+  const optTalentos = '<option value="outro">Cadastro no Banco de Talentos (sem vaga específica)</option>';
+  sel.innerHTML = '<option value="">Selecionar...</option>' +
+    `<optgroup label="Vagas em aberto">${optsVagas}</optgroup>` +
+    `<optgroup label="Outras opções">${optTalentos}</optgroup>`;
   sel.disabled = false;
-  if(hint) hint.textContent = `${cargos.length} vaga${cargos.length>1?"s":""} em aberto para ${empresa}.`;
+  if(hint) hint.textContent = `${cargos.length} vaga${cargos.length>1?"s":""} em aberto para ${empresa} — ou cadastre-se no Banco de Talentos.`;
 };
 
 // BUILD QUESTION BLOCKS
