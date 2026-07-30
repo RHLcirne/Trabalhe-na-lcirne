@@ -1349,9 +1349,11 @@ window.preencherVagasCandidato = async function(){
   });
   cargos.sort((a,b)=>a.localeCompare(b,"pt-BR"));
   if(cargos.length===0){
-    sel.innerHTML = '<option value="">Nenhuma vaga em aberto para esta empresa</option>';
-    sel.disabled = true;
-    if(hint) hint.textContent = "No momento não há vagas em aberto para esta empresa. Acompanhe nossos canais e volte em breve.";
+    // Sem vaga aberta: oferece cadastro no Banco de Talentos (não perde o currículo)
+    sel.innerHTML = '<option value="">Selecionar...</option>' +
+      '<option value="outro">Cadastro no Banco de Talentos (sem vaga específica)</option>';
+    sel.disabled = false;
+    if(hint) hint.textContent = "No momento não há vaga em aberto para esta empresa. Você pode se cadastrar em nosso Banco de Talentos e será considerado(a) em futuras oportunidades.";
     return;
   }
   sel.innerHTML = '<option value="">Selecionar vaga...</option>' +
