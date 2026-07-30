@@ -518,6 +518,19 @@
         <label>Especifique a função <span class="req">*</span></label>
         <input type="text" id="s1VagaOutra" placeholder="Descreva a função desejada">
       </div>
+      <!-- Boas-vindas exclusivas para candidatos a Gerente Comercial -->
+      <div id="gcWelcome" class="hidden" style="margin:14px 0;padding:20px;border:1px solid var(--gray2);border-left:4px solid var(--red);border-radius:12px;background:var(--gray1)">
+        <div style="font-weight:800;font-size:16px;margin-bottom:10px">Olá! Seja bem-vindo(a) ao processo seletivo para Gerente Comercial no Grupo Cirne! 🚗🏍️🔋</div>
+        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">Ficamos muito felizes com o seu interesse em fazer parte da nossa história (Cirne Moto, Cirne Pneus e Cirne Baterias). Buscamos lideranças dinâmicas, focadas em pessoas e orientadas para resultados.</p>
+        <p style="font-size:14px;color:var(--gray6);margin-bottom:6px">Para conhecermos melhor o seu perfil e a sua trajetória, nossa jornada será dividida em 3 etapas rápidas (tempo estimado: 15 a 20 minutos):</p>
+        <ol style="font-size:14px;color:var(--gray6);margin:0 0 10px 20px;padding:0">
+          <li>Confirmação de Dados Cadastrais</li>
+          <li>Mapeamento Comportamental (DISC)</li>
+          <li>Teste Prático de Gestão Comercial (Situações Reais)</li>
+        </ol>
+        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">💡 <b>Dica:</b> Escolha um local tranquilo e seja o mais específico(a) possível, detalhando suas ações e resultados reais.</p>
+        <p style="font-size:14px;color:var(--black);font-weight:600;margin:0">Podemos começar? Por favor, clique em <b>Avançar</b> e informe seu Nome Completo para dar início.</p>
+      </div>
       <button class="btn btn-primary" onclick="goStep(2)">Avançar →</button>
     </div>
 
@@ -711,6 +724,37 @@
       <button class="btn btn-primary" id="btnSubmitNV" onclick="submitAll()">Concluir e Enviar ✓</button>
       <div style="margin-top:10px">
         <button class="btn btn-ghost" onclick="goStep(4)">← Voltar</button>
+      </div>
+    </div>
+
+    <!-- STEP 5G: TESTE PRÁTICO DE GESTÃO COMERCIAL (apenas Gerente Comercial) -->
+    <div id="step5g" class="card hidden">
+      <span class="section-badge badge-met">Parte 3 — Teste Prático de Gestão Comercial</span>
+      <div class="card-title">Situações Reais de Gestão Comercial</div>
+      <div class="card-sub">Responda cada questão pelo método <b>STAR</b>: a <b>S</b>ituação, sua <b>T</b>arefa/responsabilidade, a <b>A</b>ção que tomou e o <b>R</b>esultado mensurável (em % ou R$). Quanto mais específico e com números reais, melhor.</div>
+
+      <div class="field"><label>Há quanto tempo você atua em gestão / área comercial no setor automotivo ou de motopeças? <span class="req">*</span></label>
+        <input type="text" id="gcExperiencia" placeholder="Ex.: 6 anos, sendo 3 como gerente comercial"></div>
+
+      <div class="field"><label>1. Gestão de Margem e KPIs <span class="req">*</span></label>
+        <div style="font-size:13px;color:var(--gray4);margin-bottom:6px">Descreva um momento em que a sua meta de faturamento estava sendo atingida, mas a margem de lucro estava caindo. Quais indicadores específicos você analisou, qual plano de ação implementou com a equipe e qual foi o resultado financeiro final?</div>
+        <textarea id="gcStar1" rows="5" style="width:100%;padding:10px;border:1px solid var(--gray2);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;resize:vertical" placeholder="Situação, Tarefa, Ação e Resultado (com números)..."></textarea></div>
+
+      <div class="field"><label>2. Liderança e Pessoas <span class="req">*</span></label>
+        <div style="font-size:13px;color:var(--gray4);margin-bottom:6px">Como você lida com vendedores experientes que estão abaixo da meta? Relate um caso real de feedback corretivo que você aplicou, detalhando como acompanhou a evolução do profissional.</div>
+        <textarea id="gcStar2" rows="5" style="width:100%;padding:10px;border:1px solid var(--gray2);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;resize:vertical" placeholder="Situação, Tarefa, Ação e Resultado..."></textarea></div>
+
+      <div class="field"><label>3. Expansão e Prospecção (B2B/B2C) <span class="req">*</span></label>
+        <div style="font-size:13px;color:var(--gray4);margin-bottom:6px">Considerando o mercado automotivo/motopeças, como você estruturaria uma estratégia para recuperar clientes inativos e prospectar frotistas ou grandes contas B2B em uma região mapeada?</div>
+        <textarea id="gcStar3" rows="5" style="width:100%;padding:10px;border:1px solid var(--gray2);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;resize:vertical" placeholder="Descreva sua estratégia, com etapas e resultados esperados..."></textarea></div>
+
+      <div class="field"><label>4. Processos e CRM <span class="req">*</span></label>
+        <div style="font-size:13px;color:var(--gray4);margin-bottom:6px">Como você garante a disciplina do time na alimentação do CRM/sistema comercial e usa esses dados no dia a dia para prever o faturamento (Forecast) do mês?</div>
+        <textarea id="gcStar4" rows="5" style="width:100%;padding:10px;border:1px solid var(--gray2);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;resize:vertical" placeholder="Descreva sua rotina de gestão por dados..."></textarea></div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(4)">← Voltar</button>
+        <button class="btn btn-primary" id="btnSubmitGC" onclick="submitAll()">Concluir e Enviar ✓</button>
       </div>
     </div>
 
@@ -1162,6 +1206,7 @@ let discAns={}, attAns={}, metAns={};
 let allCandidates=[];
 let allVagas=[];
 let isVendedor=false;
+let isGerenteComercial=false;
 let movingCandId=null;
 
 // UTILS
@@ -1295,6 +1340,9 @@ document.getElementById("lgpdChk").addEventListener("change",function(){ documen
 document.getElementById("s1Vaga").addEventListener("change", function(){
   const val = this.value;
   isVendedor = (val === "vendedor");
+  isGerenteComercial = (val === "gerente");
+  const w = document.getElementById("gcWelcome");
+  if(w) w.classList.toggle("hidden", !isGerenteComercial);
 });
 
 // ── VAGAS EM ABERTO NO CADASTRO DO CANDIDATO ──
@@ -1316,6 +1364,11 @@ async function getVagasAbertas(){
   return vagasAbertasCache;
 }
 
+// Detecta a vaga de Gerente Comercial (recebe o teste prático de gestão)
+function ehCargoGerenteComercial(cargo){
+  return /gerente\s*comercial/i.test(cargo||"");
+}
+
 // Mantém as avaliações de vendedor: detecta cargos de vendas pelo nome
 function ehCargoVendedor(cargo){
   return /vendedor|vendas|consultor|comercial|corretor/i.test(cargo||"");
@@ -1327,6 +1380,9 @@ window.preencherVagasCandidato = async function(){
   const sel = document.getElementById("s1Vaga");
   const hint = document.getElementById("s1VagaHint");
   isVendedor = false;
+  isGerenteComercial = false;
+  const w = document.getElementById("gcWelcome");
+  if(w) w.classList.add("hidden");
   if(!sel) return;
   if(!empresa){
     sel.innerHTML = '<option value="">Selecione a empresa primeiro...</option>';
@@ -1357,7 +1413,7 @@ window.preencherVagasCandidato = async function(){
     return;
   }
   // Sempre oferece também o Banco de Talentos (há vagas de substituição que não são divulgadas)
-  const optsVagas = cargos.map(c=>`<option value="${ehCargoVendedor(c)?"vendedor":"outro"}">${c}</option>`).join("");
+  const optsVagas = cargos.map(c=>`<option value="${ehCargoGerenteComercial(c)?"gerente":(ehCargoVendedor(c)?"vendedor":"outro")}">${c}</option>`).join("");
   const optTalentos = '<option value="outro">Cadastro no Banco de Talentos (sem vaga específica)</option>';
   sel.innerHTML = '<option value="">Selecionar...</option>' +
     `<optgroup label="Vagas em aberto">${optsVagas}</optgroup>` +
@@ -1549,10 +1605,19 @@ window.goStep=async function(step){
     }
   }
 
+  // Gerente Comercial: depois do DISC vai para o Teste Prático de Gestão Comercial
+  if(step===5 && isGerenteComercial){
+    [1,2,3,4,5,6,"4b","5g"].forEach(s=>{const el=document.getElementById("step"+s);if(el)el.classList.add("hidden");});
+    document.getElementById("step5g").classList.remove("hidden");
+    updateProgress("5g", 5);
+    window.scrollTo(0,0);
+    return;
+  }
+
   // Condicional: depois do DISC, vendedor vai para step5, outros vão para 4b
   if(step===5 && !isVendedor){
     // Não-vendedor pula steps 5 e 6 e vai para confirmação
-    [1,2,3,4,5,6,"4b"].forEach(s=>{const el=document.getElementById("step"+s);if(el)el.classList.add("hidden");});
+    [1,2,3,4,5,6,"4b","5g"].forEach(s=>{const el=document.getElementById("step"+s);if(el)el.classList.add("hidden");});
     document.getElementById("step4b").classList.remove("hidden");
     updateProgress("4b", 4);
     window.scrollTo(0,0);
@@ -1578,9 +1643,9 @@ window.goStep=async function(step){
     }
   }
 
-  [1,2,3,4,5,6,"4b"].forEach(s=>{const el=document.getElementById("step"+s);if(el)el.classList.add("hidden");});
+  [1,2,3,4,5,6,"4b","5g"].forEach(s=>{const el=document.getElementById("step"+s);if(el)el.classList.add("hidden");});
   document.getElementById("step"+step).classList.remove("hidden");
-  updateProgress(step, isVendedor?6:4);
+  updateProgress(step, isVendedor?6:(isGerenteComercial?5:4));
   window.scrollTo(0,0);
 };
 
@@ -1605,7 +1670,7 @@ window.submitAll=async function(){
   const candidato={
     empresa:document.getElementById("s1Empresa").value,
     vaga:vagaLabel,
-    tipoVaga:isVendedor?"vendedor":"outro",
+    tipoVaga:isGerenteComercial?"gerente_comercial":(isVendedor?"vendedor":"outro"),
     nome:document.getElementById("s2Nome").value,
     cpf:document.getElementById("s2CPF").value,
     nascimento:document.getElementById("s2Nasc").value,
@@ -1650,7 +1715,27 @@ window.submitAll=async function(){
     candidato.metMedia=met.avgScore;
   }
 
-  const btn=document.getElementById(isVendedor?"btnSubmit":"btnSubmitNV");
+  // Adicionar respostas do Teste Prático de Gestão Comercial (apenas Gerente Comercial)
+  if(isGerenteComercial){
+    const exp=document.getElementById("gcExperiencia").value.trim();
+    const s1=document.getElementById("gcStar1").value.trim();
+    const s2=document.getElementById("gcStar2").value.trim();
+    const s3=document.getElementById("gcStar3").value.trim();
+    const s4=document.getElementById("gcStar4").value.trim();
+    if(!exp || !s1 || !s2 || !s3 || !s4){
+      showToast("Por favor, responda todas as questões do teste de gestão comercial.");
+      return;
+    }
+    candidato.gcExperiencia=exp;
+    candidato.gcRespostas={
+      margem_kpis:s1,
+      lideranca_pessoas:s2,
+      expansao_b2b_b2c:s3,
+      processos_crm:s4
+    };
+  }
+
+  const btn=document.getElementById(isGerenteComercial?"btnSubmitGC":(isVendedor?"btnSubmit":"btnSubmitNV"));
   btn.disabled=true; btn.textContent="Salvando...";
 
   try{
@@ -1662,7 +1747,7 @@ window.submitAll=async function(){
       btn.disabled=false; btn.textContent="Concluir e Enviar ✓";
       bloquearCPFDuplicado(regFinal, avalFinal);
       showScreen("screenForm");
-      [1,2,3,4,5,6,"4b"].forEach(s=>{const el=document.getElementById("step"+s);if(el)el.classList.add("hidden");});
+      [1,2,3,4,5,6,"4b","5g"].forEach(s=>{const el=document.getElementById("step"+s);if(el)el.classList.add("hidden");});
       document.getElementById("step2").classList.remove("hidden");
       updateProgress(2, 6);
       window.scrollTo(0,0);
@@ -2830,6 +2915,17 @@ window.openModal=function(id){
     <div class="exp-item"><div style="font-weight:700">${e.cargo||"—"}</div>
     <div style="color:var(--gray6)">${e.empresa}</div>
     <div style="font-size:11px;color:#999">${e.periodo||""}</div></div>`).join("");
+  const gcResp=c.gcRespostas||null;
+  const gcResposta=(titulo,texto)=>`
+    <div style="font-weight:700;font-size:13px;margin:10px 0 4px">${titulo}</div>
+    <div style="font-size:13px;color:var(--gray6);line-height:1.55;white-space:pre-wrap;background:var(--gray1);border:1px solid var(--gray2);border-radius:8px;padding:10px">${texto||"<i style='color:var(--gray4)'>Não respondido</i>"}</div>`;
+  const gcBox=gcResp?`
+    <div class="modal-section">Teste de Gerente Comercial (respostas STAR)</div>
+    ${c.gcExperiencia?`<div class="detail-row"><span class="dl">Experiência (gestão comercial)</span><span class="dv">${c.gcExperiencia}</span></div>`:""}
+    ${gcResposta("1. Gestão de Margem e KPIs", gcResp.margem_kpis)}
+    ${gcResposta("2. Liderança e Pessoas", gcResp.lideranca_pessoas)}
+    ${gcResposta("3. Expansão e Prospecção (B2B/B2C)", gcResp.expansao_b2b_b2c)}
+    ${gcResposta("4. Processos e CRM", gcResp.processos_crm)}`:"";
   document.getElementById("modalContent").innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
       <div style="background:var(--black);color:#fff;border-radius:10px;padding:14px;text-align:center">
@@ -2865,7 +2961,7 @@ window.openModal=function(id){
       </div>
     </div>
     <div class="detail-row"><span class="dl">Função</span><span class="dv">${c.vaga||"—"}</span></div>
-    <div class="detail-row"><span class="dl">Tipo</span><span class="dv">${c.tipoVaga==="vendedor"?"🛒 Vendedor":"👔 Outra função"}</span></div>
+    <div class="detail-row"><span class="dl">Tipo</span><span class="dv">${c.tipoVaga==="gerente_comercial"?"👔 Gerente Comercial":(c.tipoVaga==="vendedor"?"🛒 Vendedor":"👔 Outra função")}</span></div>
     <div class="modal-section">Dados Pessoais</div>
     <div class="detail-row"><span class="dl">CPF</span><span class="dv">${c.cpf||"—"}</span></div>
     <div class="detail-row"><span class="dl">Nascimento</span><span class="dv">${c.nascimento||"—"}</span></div>
@@ -2885,7 +2981,8 @@ window.openModal=function(id){
     ${Array.isArray(c.empresaLogs)&&c.empresaLogs.length?`<div class="modal-section">Transferências de Empresa</div>${c.empresaLogs.map(l=>`<div class="detail-row"><span class="dl">${l.de||"—"} → <b>${l.para}</b></span><span class="dv">${fmtDate(l.data)}</span></div>`).join("")}`:""}
     ${exps?`<div class="modal-section">Experiências</div>${exps}`:""}
     ${attBars?`<div class="modal-section">Atitudes — Scores</div><div class="comp-grid">${attBars}</div>`:""}
-    ${metBars?`<div class="modal-section">Metodologia (3B+F-O)K</div><div class="comp-grid">${metBars}</div>`:""}`;
+    ${metBars?`<div class="modal-section">Metodologia (3B+F-O)K</div><div class="comp-grid">${metBars}</div>`:""}
+    ${gcBox}`;
   document.getElementById("modalOverlay").classList.remove("hidden");
 };
 
