@@ -1808,6 +1808,25 @@ window.preencherCidades=function(){
   sel.innerHTML='<option value="">Selecionar cidade...</option>'+lista.map(c=>`<option>${c}</option>`).join("");
   sel.disabled=false;
 };
+
+// ── Padronização de nomes de cidade (evita repetições no filtro do RH) ──
+// "chaveCidade" ignora acento, maiúsculas e espaços — serve para comparar/agrupar.
+function chaveCidade(s){
+  return (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .toLowerCase().replace(/\s+/g," ").trim();
+}
+// Mapa: chave normalizada → nome OFICIAL correto (a partir das listas RN e PB)
+const CIDADE_OFICIAL = (function(){
+  const m={};
+  [...RN_CIDADES, ...PB_CIDADES].forEach(c=>{ const k=chaveCidade(c); if(!m[k]) m[k]=c; });
+  return m;
+})();
+// Devolve o nome correto de uma cidade; se não estiver nas listas, devolve o texto limpo.
+function cidadeCanonica(s){
+  const k=chaveCidade(s);
+  if(!k) return "";
+  return CIDADE_OFICIAL[k] || (s||"").replace(/\s+/g," ").trim();
+}
 // Mostra o campo de CID quando o candidato é PCD
 window.togglePCD=function(){
   const wrap=document.getElementById("s2CIDWrap");
@@ -2142,8 +2161,16 @@ function preencherFiltrosTalentos(){
   Object.keys(mapa).forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return;
     const atual=sel.value;
-    const vals=Array.from(new Set(base.map(c=>(c[mapa[id].campo]||"").trim()).filter(Boolean)))
-      .sort((a,b)=>a.localeCompare(b,"pt-BR"));
+    let vals;
+    if(mapa[id].campo==="cidade"){
+      // Cidade: agrupa variações e mostra o nome oficial uma única vez
+      const mapCid={};
+      base.forEach(c=>{ const k=chaveCidade(c.cidade); if(k) mapCid[k]=cidadeCanonica(c.cidade); });
+      vals=Object.values(mapCid).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+    } else {
+      vals=Array.from(new Set(base.map(c=>(c[mapa[id].campo]||"").trim()).filter(Boolean)))
+        .sort((a,b)=>a.localeCompare(b,"pt-BR"));
+    }
     sel.innerHTML=`<option value="">${mapa[id].vazio}</option>`+
       vals.map(v=>`<option${v===atual?" selected":""}>${v}</option>`).join("");
   });
@@ -2180,7 +2207,7 @@ function filtrarTalentos(){
       if(fSit==="disponivel"){ if(info.grupo==="aprovado") return false; }
       else if(info.grupo!==fSit) return false;
     }
-    if(fCid && (c.cidade||"").trim()!==fCid) return false;
+    if(fCid && chaveCidade(c.cidade)!==chaveCidade(fCid)) return false;
     if(fFun && (c.vaga||"").trim()!==fFun) return false;
     if(fEsc && (c.escolaridade||"").trim()!==fEsc) return false;
     if(fVei && (c.veiculo||"").trim()!==fVei) return false;
@@ -2819,8 +2846,10 @@ function preencherFiltrosLista(){
   const selV=document.getElementById("filterVagaCand");
   if(selC){
     const atual=selC.value;
-    const cidades=Array.from(new Set(base.map(c=>(c.cidade||"").trim()).filter(Boolean)))
-      .sort((a,b)=>a.localeCompare(b,"pt-BR"));
+    // Agrupa por nome normalizado e exibe o nome oficial uma única vez
+    const mapCid={};
+    base.forEach(c=>{ const k=chaveCidade(c.cidade); if(k) mapCid[k]=cidadeCanonica(c.cidade); });
+    const cidades=Object.values(mapCid).sort((a,b)=>a.localeCompare(b,"pt-BR"));
     selC.innerHTML='<option value="">Todas as cidades</option>'+
       cidades.map(x=>`<option${x===atual?" selected":""}>${x}</option>`).join("");
   }
@@ -2851,7 +2880,7 @@ window.renderTable=function(){
   const [iMin,iMax] = fIdade ? fIdade.split("-").map(Number) : [null,null];
 
   const filtered=base.filter(c=>{
-    if(fCidade && (c.cidade||"").trim()!==fCidade) return false;
+    if(fCidade && chaveCidade(c.cidade)!==chaveCidade(fCidade)) return false;
     if(fVaga && (c.vaga||"").trim()!==fVaga) return false;
     if(fIdade){
       const id=calcIdade(c.nascimento);
