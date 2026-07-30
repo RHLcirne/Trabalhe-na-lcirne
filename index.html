@@ -1051,7 +1051,8 @@
           <div class="field"><label>Nome <span class="req">*</span></label><input type="text" id="cfgNome" placeholder="Nome da pessoa"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>E-mail profissional <span class="req">*</span></label><input type="email" id="cfgEmail" placeholder="pessoa@grupolcirne.com.br"></div>
+          <div class="field"><label>E-mail profissional <span class="req">*</span></label><input type="email" id="cfgEmail" placeholder="pessoa@grupolcirne.com.br">
+            <div style="font-size:11px;color:var(--gray4);margin-top:4px">Aceitos: @cirnepneus, @cirnepostos, @cirnemotos, @cirnebaterias ou @grupolcirne (.com.br)</div></div>
           <div class="field"><label>Senha (6 dígitos) <span class="req">*</span></label>
             <div style="display:flex;gap:8px">
               <input type="text" id="cfgSenha" placeholder="000000" maxlength="6" inputmode="numeric" style="flex:1">
@@ -1186,6 +1187,14 @@ async function carregarUsuarios(){
 function getUser(login){ return (appUsers && appUsers[login]) || ADMIN_USERS[login] || null; }
 function ehUsuarioFixo(login){ return Object.prototype.hasOwnProperty.call(ADMIN_USERS, login); }
 function gerarSenha6(){ return String(Math.floor(100000+Math.random()*900000)); }
+
+// E-mails que podem receber senha só podem ser dos domínios oficiais do Grupo
+const DOMINIOS_PERMITIDOS = ["cirnepneus.com.br","cirnepostos.com.br","cirnemotos.com.br","cirnebaterias.com.br","grupolcirne.com.br"];
+function emailPermitido(email){
+  const dom = String(email||"").toLowerCase().trim().split("@")[1] || "";
+  return DOMINIOS_PERMITIDOS.includes(dom);
+}
+const AVISO_DOMINIO = "O e-mail deve ser de um domínio do Grupo: @cirnepneus.com.br, @cirnepostos.com.br, @cirnemotos.com.br, @cirnebaterias.com.br ou @grupolcirne.com.br.";
 
 // ══ EmailJS — envio automático da senha por e-mail ══
 // Preencha com os 3 códigos da sua conta gratuita em emailjs.com.
@@ -3117,6 +3126,7 @@ window.salvarUsuario=async function(){
   if(!login||!nome||!email){ showToast("Preencha login, nome e e-mail."); return; }
   if(!/^\d{6}$/.test(senha)){ showToast("A senha deve ter exatamente 6 dígitos."); return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ showToast("E-mail inválido."); return; }
+  if(!emailPermitido(email)){ showToast(AVISO_DOMINIO, 7000); return; }
   if(!editId && (ehUsuarioFixo(login) || (appUsers&&appUsers[login]))){ showToast("Já existe um login com esse nome."); return; }
   try{
     await set(ref(db,`usuarios/${login}`), { senha, nome, email, role, empresa });
@@ -3192,6 +3202,7 @@ window.abrirEsqueciSenha=async function(){
   const quem=prompt("Informe seu login OU seu e-mail profissional para redefinir a senha:");
   if(!quem) return;
   const q=quem.trim();
+  if(q.includes("@") && !emailPermitido(q)){ showToast(AVISO_DOMINIO, 7000); return; }
   await carregarUsuarios();
   let login=null,u=null;
   if((appUsers||{})[q]){ login=q; u=appUsers[q]; }
