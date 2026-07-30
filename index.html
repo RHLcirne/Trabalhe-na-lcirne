@@ -501,14 +501,11 @@
     <div id="step1" class="card">
       <!-- Boas-vindas ao candidato (sem termos técnicos) -->
       <div style="margin-bottom:18px;padding:20px;border:1px solid var(--gray2);border-left:4px solid var(--red);border-radius:12px;background:var(--gray1)">
-        <div style="font-weight:800;font-size:16px;margin-bottom:10px">Olá! Seja bem-vindo(a) ao processo seletivo do Grupo Cirne! 🚗🏍️🔋</div>
-        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">Ficamos muito felizes com o seu interesse em fazer parte do nosso time. Para conhecermos melhor a sua forma de trabalhar, seu estilo de comunicação e suas experiências profissionais, preparamos uma jornada prática em 3 etapas simples (tempo estimado: 15 minutos):</p>
-        <ol style="font-size:14px;color:var(--gray6);margin:0 0 10px 20px;padding:0">
-          <li>Confirmação de Dados Cadastrais</li>
-          <li>Mapeamento de Estilo de Trabalho</li>
-          <li>Casos Práticos de Gestão (para vagas de liderança)</li>
-        </ol>
-        <p style="font-size:14px;color:var(--gray6);margin:0"><b>💡 Dica importante:</b> Não existem respostas certas ou erradas no Mapeamento de Estilo de Trabalho. Responda com total sinceridade sobre como você realmente age no dia a dia do ambiente profissional.</p>
+        <div style="font-weight:800;font-size:16px;margin-bottom:10px">Olá! Seja muito bem-vindo(a) ao portal de seleção do Grupo Cirne! 🚗🏍️⚓🔋</div>
+        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">Ficamos felizes com o seu interesse em construir sua carreira conosco na Cirne Pneus, Cirne Motos, Cirne Postos ou Cirne Baterias.</p>
+        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">Para iniciarmos, queremos conhecer quem você é e o seu estilo de trabalho através de uma experiência simples e dinâmica.</p>
+        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px"><b>💡 Dica importante:</b> Responda a todas as etapas com total sinceridade sobre a sua rotina real de trabalho. Não existem respostas certas ou erradas no nosso mapeamento.</p>
+        <p style="font-size:14px;color:var(--black);font-weight:600;margin:0">Para começarmos, selecione abaixo a empresa e a vaga de seu interesse. 👇</p>
       </div>
       <div class="card-title">Qual vaga você busca?</div>
       <div class="card-sub">Selecione a empresa e informe a função de interesse.</div>
@@ -688,8 +685,8 @@
 
     <!-- STEP 5: ATITUDES (apenas vendedores) -->
     <div id="step5" class="card hidden">
-      <span class="section-badge badge-att">Parte 2 — Atitudes Profissionais</span>
-      <div class="card-title">Avaliação de Atitudes</div>
+      <span class="section-badge badge-att">Etapa 3 — Desafios Comerciais</span>
+      <div class="card-title">Desafios do Dia a Dia Comercial</div>
       <div class="card-sub">Escolha a alternativa que melhor representa como você age em situações reais de trabalho.</div>
       <div id="attQuestions"></div>
       <div class="btn-row">
@@ -705,8 +702,8 @@
 
     <!-- STEP 6: METODOLOGIA (apenas vendedores) -->
     <div id="step6" class="card hidden">
-      <span class="section-badge badge-met">Parte 3 — Metodologia (3B+F-O)K</span>
-      <div class="card-title">Metodologia de Vendas</div>
+      <span class="section-badge badge-met">Etapa 3 — Casos Práticos de Venda</span>
+      <div class="card-title">Situações Práticas de Venda</div>
       <div class="card-sub">Esta seção avalia sua abordagem nas etapas do processo de vendas.</div>
       <div id="metQuestions"></div>
       <div class="btn-row">
@@ -1139,6 +1136,17 @@ const PIPELINE = [
 
 // ══ EMPRESAS DO GRUPO (edite aqui para incluir/alterar empresas) ══
 const EMPRESAS = ["Cirne Motos","Cirne Postos","Cirne Pneus","Cirne Distribuidora de Baterias"];
+
+// ══ CORES DAS MARCAS (logos oficiais das empresas do grupo) ══
+const EMPRESA_CORES = {
+  "Cirne Motos":"#E11B22",                         // vermelho
+  "Cirne Postos":"#F2A900",                        // amarelo
+  "Cirne Pneus":"#EF7D00",                          // laranja
+  "Cirne Distribuidora de Baterias":"#1E9E4A",     // verde
+};
+function corEmpresa(nome){ return EMPRESA_CORES[nome] || "#5B6B7C"; }
+// Ponto colorido com a cor da marca, para colocar antes do nome da empresa
+function pontoEmpresa(nome){ return `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${corEmpresa(nome)};margin-right:6px;vertical-align:middle"></span>`; }
 
 // ══ UNIDADES por empresa (edite aqui para incluir/alterar unidades) ══
 // ══ CARÊNCIA PARA NOVO CADASTRO ══
@@ -2031,7 +2039,7 @@ function renderTalentos(){
     return `
     <div class="tal-card" style="border-left-color:${info.cor}">
       <div class="tal-nome">${c.nome||"—"}</div>
-      <div class="tal-sub">${c.vaga||"—"} · ${c.empresa||"—"}</div>
+      <div class="tal-sub">${c.vaga||"—"} · ${pontoEmpresa(c.empresa)}${c.empresa||"—"}</div>
       <div class="tal-sub">${[idade!==null?idade+" anos":null, c.cidade||null, c.telefone||null].filter(Boolean).join(" · ")}</div>
       <div class="tal-tags">
         <span class="tal-sit" style="background:${info.cor}22;color:${info.cor}">${info.rot}</span>
@@ -2401,7 +2409,7 @@ function renderVagas(){
   }
   const rows=lista.map(v=>`
     <tr>
-      <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)"><b>${v.empresa||"—"}</b></td>
+      <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)"><b>${pontoEmpresa(v.empresa)}${v.empresa||"—"}</b></td>
       <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)">${v.unidade?`<span class="vaga-status" style="background:var(--gray1);color:var(--gray6)">${v.unidade}</span>`:'<span style="color:var(--gray4)">—</span>'}</td>
       <td style="padding:12px 14px;border-bottom:1px solid var(--gray2)">${v.cargo||"—"}${v.salarioDe||v.salarioAte?`<div style="font-size:11px;color:#1A7F45;font-weight:700">${v.salarioDe||""}${v.salarioDe&&v.salarioAte?" a ":""}${v.salarioAte||""}${v.mostrarSalario==="sim"?"":" (interno)"}</div>`:""}${v.observacao?`<div style="font-size:11px;color:var(--gray4)">${v.observacao}</div>`:""}</td>
       <td style="padding:12px 14px;border-bottom:1px solid var(--gray2);text-align:center;font-weight:800">${v.quantidade||1}</td>
@@ -2665,7 +2673,7 @@ window.renderTable=function(){
     return `
     <div class="table-row" onclick="openModal('${c.id}')">
       <div><strong>${c.nome||"—"}</strong><br><span style="font-size:11px;color:#999">${c.telefone||""}${idade!==null?` · ${idade} anos`:""}${c.cidade?` · ${c.cidade}`:""}</span></div>
-      <div style="font-size:13px">${c.empresa||"—"}</div>
+      <div style="font-size:13px">${pontoEmpresa(c.empresa)}${c.empresa||"—"}</div>
       <div class="col-vaga" style="font-size:13px">${c.vaga||"—"}</div>
       <div><span class="disc-badge disc-${c.discPerfil||"D"}">${c.discPerfil||"—"}</span></div>
       <div class="col-att"><span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--gray1);border:1px solid var(--gray2)">${pipelineLabel[c.pipeline||"cadastro"]||c.pipeline}</span></div>
@@ -2749,7 +2757,7 @@ function buildKanbanCard(c, currentCol){
     </div>`;
   return `<div class="kanban-card">
     <div class="kc-name">${c.nome||"—"}</div>
-    <div class="kc-vaga">${c.empresa||"—"} · ${c.vaga||"—"}</div>
+    <div class="kc-vaga">${pontoEmpresa(c.empresa)}${c.empresa||"—"} · ${c.vaga||"—"}</div>
     <span class="kc-disc" style="background:${discColor[c.discPerfil||"D"]||"#999"}">${c.discPerfil||"—"}</span>
     ${fbSelo}
     ${motivoHtml}
@@ -3050,7 +3058,7 @@ window.openModal=function(id){
     <div class="detail-row">
       <span class="dl">Empresa</span>
       <span class="dv" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <span id="empAtual_${c.id}" style="font-weight:700">${c.empresa||"—"}</span>
+        <span id="empAtual_${c.id}" style="font-weight:700">${pontoEmpresa(c.empresa)}${c.empresa||"—"}</span>
         <button class="admin-only" onclick="abrirTrocaEmpresa('${c.id}')" style="background:var(--gray2);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">✏️ Alterar</button>
       </span>
     </div>
@@ -3186,8 +3194,8 @@ async function carregarVagasPublicas(){
       const vs=porEmpresa[emp].sort((a,b)=>(a.cargo||"").localeCompare(b.cargo||"","pt-BR"));
       const totalPos=vs.reduce((s,v)=>s+(parseInt(v.quantidade,10)||0),0);
       return `
-      <div class="vp-empresa">
-        <div class="vp-empresa-nome">${emp}<span>${totalPos} posiç${totalPos===1?"ão":"ões"}</span></div>
+      <div class="vp-empresa" style="border-left:4px solid ${corEmpresa(emp)}">
+        <div class="vp-empresa-nome" style="color:${corEmpresa(emp)}">${emp}<span>${totalPos} posiç${totalPos===1?"ão":"ões"}</span></div>
         ${vs.map(v=>montarVagaPublica(v)).join("")}
       </div>`;
     }).join("");
