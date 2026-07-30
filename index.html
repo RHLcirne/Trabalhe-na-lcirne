@@ -213,6 +213,11 @@
   .stat-card{background:#fff;border-radius:10px;border:1px solid var(--gray2);padding:16px;text-align:center}
   .stat-card .sv{font-size:26px;font-weight:800}
   .stat-card .sl{font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  /* Tooltip de ajuda (ⓘ) — funciona no mouse e no toque (iOS) */
+  .help{position:relative;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--gray2);color:var(--gray6);font-size:10px;font-weight:800;font-style:normal;line-height:1;cursor:help;margin-left:5px;vertical-align:middle;-webkit-tap-highlight-color:transparent;user-select:none;outline:none}
+  .help .tip{position:absolute;bottom:calc(100% + 9px);left:50%;transform:translateX(-50%);width:230px;max-width:72vw;background:var(--black);color:#fff;font-size:12px;font-weight:500;line-height:1.45;text-align:left;text-transform:none;letter-spacing:0;padding:10px 12px;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.28);opacity:0;visibility:hidden;transition:opacity .15s;z-index:200;pointer-events:none}
+  .help .tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--black)}
+  .help:hover .tip,.help:focus .tip{opacity:1;visibility:visible}
 
   /* FILTER */
   .filter-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
@@ -2435,6 +2440,9 @@ function renderVagas(){
     </table>`;
 }
 
+// Ícone de ajuda com explicação (aparece no mouse e no toque)
+function dica(txt){ return `<span class="help" tabindex="0" role="button" aria-label="O que significa este indicador">i<span class="tip">${txt}</span></span>`; }
+
 function renderDashboard(){
   const filtered=getFilteredCandidates();
   const total=filtered.length;
@@ -2520,18 +2528,18 @@ function renderDashboard(){
 
     <div class="dash-kpis">
       <div class="dash-kpi" style="border-left-color:${col("cadastro")}">
-        <div class="kv">${total}</div><div class="kl">Candidatos cadastrados</div><div class="ks">Volume de entrada</div></div>
+        <div class="kv">${total}</div><div class="kl">Candidatos cadastrados${dica("Total de candidatos que entraram no processo (volume de entrada). Respeita os filtros aplicados acima.")}</div><div class="ks">Volume de entrada</div></div>
       <div class="dash-kpi" style="border-left-color:var(--green)">
-        <div class="kv">${vagasAbertas}</div><div class="kl">Vagas abertas</div><div class="ks">${posicoesAbertas} posiç${posicoesAbertas===1?"ão":"ões"} em aberto</div></div>
+        <div class="kv">${vagasAbertas}</div><div class="kl">Vagas abertas${dica("Quantidade de vagas com status 'Aberta' no momento. 'Posições' é a soma das quantidades de cada vaga.")}</div><div class="ks">${posicoesAbertas} posiç${posicoesAbertas===1?"ão":"ões"} em aberto</div></div>
       <div class="dash-kpi" style="border-left-color:var(--warn)">
-        <div class="kv">${emProcesso}</div><div class="kl">Em processo ativo</div><div class="ks">${pct(emProcesso)}% do total (RH + entrevistas)</div></div>
+        <div class="kv">${emProcesso}</div><div class="kl">Em processo ativo${dica("Candidatos em etapas ativas: Análise do RH, Entrevista Online e Entrevista com Gestor.")}</div><div class="ks">${pct(emProcesso)}% do total (RH + entrevistas)</div></div>
       <div class="dash-kpi" style="border-left-color:${col("aprovado")}">
-        <div class="kv">${cnt.aprovado}</div><div class="kl">Aprovados — em admissão</div><div class="ks">Taxa de aprovação: ${pct(cnt.aprovado)}%</div></div>
+        <div class="kv">${cnt.aprovado}</div><div class="kl">Aprovados — em admissão${dica("Candidatos aprovados que estão em fase de admissão. A taxa de aprovação é calculada sobre o total de cadastrados.")}</div><div class="ks">Taxa de aprovação: ${pct(cnt.aprovado)}%</div></div>
       <div class="dash-kpi" style="border-left-color:${col("desistiu")}">
-        <div class="kv">${saida}</div><div class="kl">Saídas / desclassificações</div><div class="ks">${pct(saida)}% do total</div></div>
+        <div class="kv">${saida}</div><div class="kl">Saídas / desclassificações${dica("Candidatos que saíram do processo: fora do perfil, desistências ou não comparecimento.")}</div><div class="ks">${pct(saida)}% do total</div></div>
       <div class="dash-kpi" style="border-left-color:var(--purple)">
         <div class="kv">${tmcTxt}${tmc.media!==null?'<span style="font-size:15px;font-weight:700;color:var(--gray6)"> dias</span>':''}</div>
-        <div class="kl">Tempo médio de contratação</div><div class="ks">${tmcSub}</div></div>
+        <div class="kl">Tempo médio de contratação${dica("Média de dias entre a data de cadastro e a data de aprovação dos candidatos admitidos.")}</div><div class="ks">${tmcSub}</div></div>
     </div>
 
     <div class="dash-card">
@@ -2586,12 +2594,12 @@ function renderStats(){
   document.getElementById("statRow").innerHTML=`
     <div class="stat-card">
       <div class="sv">${total}</div>
-      <div class="sl">Total Candidatos</div>
+      <div class="sl">Total Candidatos${dica("Número total de candidatos cadastrados (considerando os filtros aplicados).")}</div>
       <div style="font-size:9px;color:var(--gray4);margin-top:2px">${empLabel}</div>
     </div>
-    <div class="stat-card"><div class="sv" style="color:var(--red)">${topDisc?topDisc[0]:"—"}</div><div class="sl">DISC Predominante</div></div>
-    <div class="stat-card"><div class="sv" style="color:var(--warn)">${emAnalise}</div><div class="sl">Em Processo</div></div>
-    <div class="stat-card"><div class="sv" style="color:var(--green)">${emAdmissao}</div><div class="sl">Em Admissão</div></div>`;
+    <div class="stat-card"><div class="sv" style="color:var(--red)">${topDisc?topDisc[0]:"—"}</div><div class="sl">DISC Predominante${dica("Estilo comportamental mais comum entre os candidatos filtrados. D = Dominância, I = Influência, S = Estabilidade, C = Conformidade.")}</div></div>
+    <div class="stat-card"><div class="sv" style="color:var(--warn)">${emAnalise}</div><div class="sl">Em Processo${dica("Candidatos em etapas ativas do processo seletivo (análise e entrevistas).")}</div></div>
+    <div class="stat-card"><div class="sv" style="color:var(--green)">${emAdmissao}</div><div class="sl">Em Admissão${dica("Candidatos aprovados que estão em processo de admissão.")}</div></div>`;
 }
 
 // Calcula idade a partir da data de nascimento (YYYY-MM-DD)
@@ -3023,9 +3031,9 @@ window.openModal=function(id){
     <div class="ci-bar"><div class="ci-fill" style="width:${bf[k]}%;background:var(--black)"></div></div></div>`).join(""):"";
   const estiloBox=(bf||c.discSecundario)?`
     <div class="modal-section">Mapeamento de Estilo — leitura RH (triagem, não é laudo psicológico)</div>
-    <div class="detail-row"><span class="dl">Eixo comportamental (DISC)</span><span class="dv">Dominante: <b>${DISC_PROFILES[c.discPerfil]?.name||c.discPerfil||"—"}</b>${c.discSecundario?` · Secundário: ${DISC_PROFILES[c.discSecundario]?.name||c.discSecundario}`:""}</span></div>
-    ${c.estiloConsistencia?`<div class="detail-row"><span class="dl">Índice de consistência</span><span class="dv"><b>${c.estiloConsistencia.nivel}</b> — <span style="font-weight:400;color:var(--gray6)">${c.estiloConsistencia.nota}</span></span></div>`:""}
-    ${bfBars?`<div style="font-size:11px;color:var(--gray4);margin:10px 0 4px">5 Fatores (leitura indicativa, 0–100%):</div><div class="comp-grid">${bfBars}</div>`:""}`:"";
+    <div class="detail-row"><span class="dl">Eixo comportamental (DISC)${dica("Dominante = estilo principal do candidato; Secundário = o segundo mais forte. D=Dominância, I=Influência, S=Estabilidade, C=Conformidade. É indicador de estilo, não laudo psicológico.")}</span><span class="dv">Dominante: <b>${DISC_PROFILES[c.discPerfil]?.name||c.discPerfil||"—"}</b>${c.discSecundario?` · Secundário: ${DISC_PROFILES[c.discSecundario]?.name||c.discSecundario}`:""}</span></div>
+    ${c.estiloConsistencia?`<div class="detail-row"><span class="dl">Índice de consistência${dica("Mostra se as respostas do mapeamento foram coerentes. 'Alta' = perfil consistente; 'Baixa' = respostas dispersas, vale confirmar na entrevista.")}</span><span class="dv"><b>${c.estiloConsistencia.nivel}</b> — <span style="font-weight:400;color:var(--gray6)">${c.estiloConsistencia.nota}</span></span></div>`:""}
+    ${bfBars?`<div style="font-size:11px;color:var(--gray4);margin:10px 0 4px">5 Fatores (leitura indicativa, 0–100%):${dica("Cinco traços de comportamento medidos de 0 a 100%: Abertura a Experiências (inovação), Conscienciosidade (disciplina), Extroversão (comunicação), Amabilidade (cooperação) e Estabilidade Emocional (resiliência).")}</div><div class="comp-grid">${bfBars}</div>`:""}`:"";
   const gcResp=c.gcRespostas||null;
   const gcResposta=(titulo,texto)=>`
     <div style="font-weight:700;font-size:13px;margin:10px 0 4px">${titulo}</div>
