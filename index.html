@@ -375,6 +375,14 @@
   .kanban-card .kc-log{font-size:10px;color:var(--gray4);line-height:1.6;border-top:1px solid var(--gray2);padding-top:6px;margin-top:4px}
   .kanban-card .kc-log .log-entry{display:flex;align-items:center;gap:4px}
   .kanban-card .kc-log .log-entry::before{content:"•";color:var(--green)}
+  /* SLA — tempo por etapa no cartão do Kanban */
+  .kanban-card .kc-sla{border-top:1px solid var(--gray2);padding-top:7px;margin-top:6px}
+  .kanban-card .kc-sla-tit{font-size:10px;font-weight:800;color:var(--gray6);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+  .kanban-card .kc-sla-linha{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray6);padding:1.5px 0}
+  .kanban-card .kc-sla-dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .kanban-card .kc-sla-nome{flex:1}
+  .kanban-card .kc-sla-dur{font-weight:700;color:var(--black);white-space:nowrap}
+  .kanban-card .kc-sla-total{font-size:11px;color:var(--gray6);margin-top:5px;padding-top:5px;border-top:1px dashed var(--gray2)}
   .kanban-card .kc-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .kc-btn{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;
     border:none;cursor:pointer;font-family:'Inter',sans-serif}
@@ -564,10 +572,35 @@
           <input type="text" id="s2Bairro" placeholder="Seu bairro"></div>
       </div>
       <div class="field-row">
+        <div class="field"><label>Estado <span class="req">*</span></label>
+          <select id="s2Estado" onchange="preencherCidades()">
+            <option value="">Selecionar...</option>
+            <option value="RN">Rio Grande do Norte (RN)</option>
+            <option value="PB">Paraíba (PB)</option>
+          </select></div>
         <div class="field"><label>Cidade <span class="req">*</span></label>
-          <input type="text" id="s2Cidade" placeholder="Sua cidade"></div>
+          <select id="s2Cidade" disabled><option value="">Selecione o estado primeiro...</option></select></div>
+      </div>
+      <div class="field-row">
         <div class="field"><label>CEP</label>
           <input type="text" id="s2CEP" placeholder="00000-000" inputmode="numeric" maxlength="9"></div>
+        <div class="field"><label>Sexo <span class="req">*</span></label>
+          <select id="s2Sexo">
+            <option value="">Selecionar...</option>
+            <option value="F">Feminino</option>
+            <option value="M">Masculino</option>
+            <option value="Outros">Outros</option>
+          </select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Pessoa com Deficiência (PCD)? <span class="req">*</span></label>
+          <select id="s2PCD" onchange="togglePCD()">
+            <option value="">Selecionar...</option>
+            <option value="Não">Não</option>
+            <option value="Sim">Sim</option>
+          </select></div>
+        <div class="field hidden" id="s2CIDWrap"><label>CID (informe por escrito) <span class="req">*</span></label>
+          <input type="text" id="s2CID" placeholder="Ex.: H54 — deficiência visual"></div>
       </div>
       <div class="field-row">
         <div class="field"><label>Estado Civil <span class="req">*</span></label>
@@ -1719,6 +1752,25 @@ window.startCadastro=function(){
   });
 })();
 
+// ══ ESTADO → CIDADE (RN: todas; PB: João Pessoa e região metropolitana) ══
+const RN_CIDADES = ["Acari","Açu (Assu)","Afonso Bezerra","Água Nova","Alexandria","Almino Afonso","Alto do Rodrigues","Angicos","Antônio Martins","Apodi","Areia Branca","Arês","Baía Formosa","Baraúna","Barcelona","Bento Fernandes","Bodó","Bom Jesus","Brejinho","Caiçara do Norte","Caiçara do Rio do Vento","Caicó","Campo Redondo","Canguaretama","Caraúbas","Carnaúba dos Dantas","Carnaubais","Ceará-Mirim","Cerro Corá","Coronel Ezequiel","Coronel João Pessoa","Cruzeta","Currais Novos","Doutor Severiano","Encanto","Equador","Espírito Santo","Extremoz","Felipe Guerra","Fernando Pedroza","Florânia","Francisco Dantas","Frutuoso Gomes","Galinhos","Goianinha","Governador Dix-Sept Rosado","Grossos","Guamaré","Ielmo Marinho","Ipanguaçu","Ipueira","Itajá","Itaú","Jaçanã","Jandaíra","Janduís","Januário Cicco","Japi","Jardim de Angicos","Jardim de Piranhas","Jardim do Seridó","João Câmara","João Dias","José da Penha","Jucurutu","Jundiá","Lagoa d'Anta","Lagoa de Pedras","Lagoa de Velhos","Lagoa Nova","Lagoa Salgada","Lajes","Lajes Pintadas","Lucrécia","Luís Gomes","Macaíba","Macau","Major Sales","Marcelino Vieira","Martins","Maxaranguape","Messias Targino","Montanhas","Monte Alegre","Monte das Gameleiras","Mossoró","Natal","Nísia Floresta","Nova Cruz","Olho-d'Água do Borges","Ouro Branco","Paraná","Paraú","Parazinho","Parelhas","Parnamirim","Passa e Fica","Passagem","Patu","Pau dos Ferros","Pedra Grande","Pedra Preta","Pedro Avelino","Pedro Velho","Pendências","Pilões","Poço Branco","Portalegre","Porto do Mangue","Presidente Juscelino","Pureza","Rafael Fernandes","Rafael Godeiro","Riacho da Cruz","Riacho de Santana","Riachuelo","Rio do Fogo","Rodolfo Fernandes","Ruy Barbosa","Santa Cruz","Santa Maria","Santana do Matos","Santana do Seridó","Santo Antônio","São Bento do Norte","São Bento do Trairí","São Fernando","São Francisco do Oeste","São Gonçalo do Amarante","São João do Sabugi","São José de Mipibu","São José do Campestre","São José do Seridó","São Miguel","São Miguel do Gostoso","São Paulo do Potengi","São Pedro","São Rafael","São Tomé","São Vicente","Senador Elói de Souza","Senador Georgino Avelino","Serra de São Bento","Serra do Mel","Serra Negra do Norte","Serrinha","Serrinha dos Pintos","Severiano Melo","Sítio Novo","Taboleiro Grande","Taipu","Tangará","Tenente Ananias","Tenente Laurentino Cruz","Tibau","Tibau do Sul","Timbaúba dos Batistas","Touros","Triunfo Potiguar","Umarizal","Upanema","Várzea","Venha-Ver","Vera Cruz","Viçosa","Vila Flor"];
+const PB_CIDADES = ["João Pessoa","Bayeux","Cabedelo","Santa Rita","Conde","Lucena","Cruz do Espírito Santo","Rio Tinto","Sapé","Mari","Pedras de Fogo","Alhandra","Pitimbu","Caaporã"];
+window.preencherCidades=function(){
+  const uf=document.getElementById("s2Estado").value;
+  const sel=document.getElementById("s2Cidade");
+  const lista = uf==="RN"?RN_CIDADES : uf==="PB"?PB_CIDADES : [];
+  if(!uf){ sel.innerHTML='<option value="">Selecione o estado primeiro...</option>'; sel.disabled=true; return; }
+  sel.innerHTML='<option value="">Selecionar cidade...</option>'+lista.map(c=>`<option>${c}</option>`).join("");
+  sel.disabled=false;
+};
+// Mostra o campo de CID quando o candidato é PCD
+window.togglePCD=function(){
+  const wrap=document.getElementById("s2CIDWrap");
+  const sim=document.getElementById("s2PCD").value==="Sim";
+  wrap.classList.toggle("hidden", !sim);
+  if(!sim) document.getElementById("s2CID").value="";
+};
+
 // "Primeiro emprego" desabilita a data da última carteira assinada
 window.togglePrimeiroEmprego=function(){
   const chk=document.getElementById("s2PrimeiroEmprego");
@@ -1738,10 +1790,15 @@ window.goStep=async function(step){
   if(step===3){
     const fields=[["s2Nome","nome"],["s2CPF","CPF"],["s2Nasc","data de nascimento"],
       ["s2Tel","telefone"],["s2Rua","rua / avenida"],["s2Numero","número"],
-      ["s2Bairro","bairro"],["s2Cidade","cidade"],
+      ["s2Bairro","bairro"],["s2Estado","estado"],["s2Cidade","cidade"],["s2Sexo","sexo"],
+      ["s2PCD","se é PCD (Pessoa com Deficiência)"],
       [ "s2EstCivil","estado civil"],["s2Filhos","filhos"],["s2Escola","escolaridade"],
       ["s2Mae","nome da mãe"],["s2Veiculo","possui veículo"],["s2Salario","último salário"]];
     for(const [id,lbl] of fields){ if(!document.getElementById(id).value.trim()){showToast("Preencha: "+lbl);return;} }
+    // Se for PCD, o CID é obrigatório
+    if(document.getElementById("s2PCD").value==="Sim" && !document.getElementById("s2CID").value.trim()){
+      showToast("Informe o CID (você marcou que é PCD)."); document.getElementById("s2CID").focus(); return;
+    }
 
     // CPF: formato válido
     const cpfInput=document.getElementById("s2CPF").value;
@@ -1866,7 +1923,11 @@ window.submitAll=async function(){
     complemento:document.getElementById("s2Compl").value.trim(),
     cep:document.getElementById("s2CEP").value.trim(),
     bairro:document.getElementById("s2Bairro").value,
+    estado:document.getElementById("s2Estado").value,
     cidade:document.getElementById("s2Cidade").value,
+    sexo:document.getElementById("s2Sexo").value,
+    pcd:document.getElementById("s2PCD").value,
+    cid:document.getElementById("s2PCD").value==="Sim"?document.getElementById("s2CID").value.trim():"",
     estadoCivil:document.getElementById("s2EstCivil").value,
     filhos:document.getElementById("s2Filhos").value,
     filhosIdades:document.getElementById("s2FilhosIdades").value,
@@ -2820,13 +2881,34 @@ function renderKanban(){
   fitKanbanHeight();
 }
 
+// Formata uma duração (ms) de forma amigável
+function fmtDuracao(ms){
+  if(!(ms>0)) return "menos de 1h";
+  const h=Math.floor(ms/3600000);
+  if(h<1){ const min=Math.floor(ms/60000); return min<=1?"menos de 1h":`${min} min`; }
+  if(h<24) return `${h}h`;
+  const d=Math.floor(ms/86400000), hr=Math.floor((ms%86400000)/3600000);
+  return hr>0?`${d}d ${hr}h`:`${d} dia${d>1?"s":""}`;
+}
+// SLA: quanto tempo o candidato ficou em cada etapa (a última é a atual)
+function slaKanban(c){
+  const logs=Array.isArray(c.pipelineLogs)?c.pipelineLogs:[];
+  if(!logs.length) return "";
+  const agora=Date.now();
+  const linhas=logs.map((l,i)=>{
+    const ini=new Date(l.data).getTime();
+    const fim=i+1<logs.length?new Date(logs[i+1].data).getTime():agora;
+    const atual=i+1===logs.length;
+    const nome=(PIPELINE.find(p=>p.id===l.etapa)?.label||l.etapa).replace(/^[^\s]+ /,"");
+    const cor=PIPELINE.find(p=>p.id===l.etapa)?.color||"#999";
+    return `<div class="kc-sla-linha"><span class="kc-sla-dot" style="background:${cor}"></span><span class="kc-sla-nome">${nome}${atual?" <b>(atual)</b>":""}</span><span class="kc-sla-dur">${fmtDuracao(fim-ini)}</span></div>`;
+  }).join("");
+  const total=fmtDuracao(agora-new Date(logs[0].data).getTime());
+  return `<div class="kc-sla"><div class="kc-sla-tit">⏱️ Tempo por etapa</div>${linhas}<div class="kc-sla-total">Total no processo: <b>${total}</b></div></div>`;
+}
+
 function buildKanbanCard(c, currentCol){
   const discColor={D:"#CC0000",I:"#E6A817",S:"#1A7F45",C:"#2563EB"};
-  const logs=Array.isArray(c.pipelineLogs)?c.pipelineLogs:[];
-  const logsHtml=logs.length>0?`
-    <div class="kc-log">
-      ${logs.map(l=>`<div class="log-entry">${PIPELINE.find(p=>p.id===l.etapa)?.label.replace(/^[^\s]+ /,"")||l.etapa}: ${fmtDate(l.data)}</div>`).join("")}
-    </div>`:"";
   const nextCols=PIPELINE.filter(p=>p.id!==currentCol);
   const motivoHtml = NEEDS_MOTIVO[currentCol] ? `
     <div class="kc-motivo">
@@ -2856,7 +2938,7 @@ function buildKanbanCard(c, currentCol){
     <span class="kc-disc" style="background:${discColor[c.discPerfil||"D"]||"#999"}">${c.discPerfil||"—"}</span>
     ${fbSelo}
     ${motivoHtml}
-    ${logsHtml}
+    ${slaKanban(c)}
     ${actionsHtml}
   </div>`;
 }
@@ -3328,7 +3410,9 @@ window.openModal=function(id){
     <div class="detail-row"><span class="dl">Telefone</span><span class="dv">${c.telefone||"—"}</span></div>
     <div class="detail-row"><span class="dl">E-mail</span><span class="dv">${c.email||"—"}</span></div>
     <div class="detail-row"><span class="dl">Endereço</span><span class="dv">${c.rua?`${c.rua}, ${c.numero||"s/n"}${c.complemento?` — ${c.complemento}`:""}`:"—"}</span></div>
-    <div class="detail-row"><span class="dl">Bairro / Cidade</span><span class="dv">${c.bairro||"—"} / ${c.cidade||"—"}${c.cep?` — CEP ${c.cep}`:""}</span></div>
+    <div class="detail-row"><span class="dl">Bairro / Cidade</span><span class="dv">${c.bairro||"—"} / ${c.cidade||"—"}${c.estado?` - ${c.estado}`:""}${c.cep?` — CEP ${c.cep}`:""}</span></div>
+    <div class="detail-row"><span class="dl">Sexo</span><span class="dv">${c.sexo==="F"?"Feminino":c.sexo==="M"?"Masculino":(c.sexo||"—")}</span></div>
+    <div class="detail-row"><span class="dl">PCD</span><span class="dv">${c.pcd==="Sim"?`Sim${c.cid?` — CID: <b>${c.cid}</b>`:""}`:(c.pcd||"—")}</span></div>
     <div class="detail-row"><span class="dl">Estado Civil</span><span class="dv">${c.estadoCivil||"—"}</span></div>
     <div class="detail-row"><span class="dl">Filhos</span><span class="dv">${c.filhos||"—"}${c.filhosIdades?` (${c.filhosIdades})`:""}</span></div>
     <div class="detail-row"><span class="dl">Nome da mãe</span><span class="dv">${c.nomeMae||"—"}</span></div>
