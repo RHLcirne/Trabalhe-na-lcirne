@@ -499,6 +499,17 @@
 
     <!-- STEP 1: DESTINO -->
     <div id="step1" class="card">
+      <!-- Boas-vindas ao candidato (sem termos técnicos) -->
+      <div style="margin-bottom:18px;padding:20px;border:1px solid var(--gray2);border-left:4px solid var(--red);border-radius:12px;background:var(--gray1)">
+        <div style="font-weight:800;font-size:16px;margin-bottom:10px">Olá! Seja bem-vindo(a) ao processo seletivo do Grupo Cirne! 🚗🏍️🔋</div>
+        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">Ficamos muito felizes com o seu interesse em fazer parte do nosso time. Para conhecermos melhor a sua forma de trabalhar, seu estilo de comunicação e suas experiências profissionais, preparamos uma jornada prática em 3 etapas simples (tempo estimado: 15 minutos):</p>
+        <ol style="font-size:14px;color:var(--gray6);margin:0 0 10px 20px;padding:0">
+          <li>Confirmação de Dados Cadastrais</li>
+          <li>Mapeamento de Estilo de Trabalho</li>
+          <li>Casos Práticos de Gestão (para vagas de liderança)</li>
+        </ol>
+        <p style="font-size:14px;color:var(--gray6);margin:0"><b>💡 Dica importante:</b> Não existem respostas certas ou erradas no Mapeamento de Estilo de Trabalho. Responda com total sinceridade sobre como você realmente age no dia a dia do ambiente profissional.</p>
+      </div>
       <div class="card-title">Qual vaga você busca?</div>
       <div class="card-sub">Selecione a empresa e informe a função de interesse.</div>
       <div class="field"><label>Empresa <span class="req">*</span></label>
@@ -517,19 +528,6 @@
       <div id="vagaOutraWrap" class="field hidden">
         <label>Especifique a função <span class="req">*</span></label>
         <input type="text" id="s1VagaOutra" placeholder="Descreva a função desejada">
-      </div>
-      <!-- Boas-vindas exclusivas para candidatos a Gerente Comercial -->
-      <div id="gcWelcome" class="hidden" style="margin:14px 0;padding:20px;border:1px solid var(--gray2);border-left:4px solid var(--red);border-radius:12px;background:var(--gray1)">
-        <div style="font-weight:800;font-size:16px;margin-bottom:10px">Olá! Seja bem-vindo(a) ao processo seletivo para Gerente Comercial no Grupo Cirne! 🚗🏍️🔋</div>
-        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">Ficamos muito felizes com o seu interesse em fazer parte da nossa história (Cirne Moto, Cirne Pneus e Cirne Baterias). Buscamos lideranças dinâmicas, focadas em pessoas e orientadas para resultados.</p>
-        <p style="font-size:14px;color:var(--gray6);margin-bottom:6px">Para conhecermos melhor o seu perfil e a sua trajetória, nossa jornada será dividida em 3 etapas rápidas (tempo estimado: 15 a 20 minutos):</p>
-        <ol style="font-size:14px;color:var(--gray6);margin:0 0 10px 20px;padding:0">
-          <li>Confirmação de Dados Cadastrais</li>
-          <li>Mapeamento Comportamental (DISC)</li>
-          <li>Teste Prático de Gestão Comercial (Situações Reais)</li>
-        </ol>
-        <p style="font-size:14px;color:var(--gray6);margin-bottom:10px">💡 <b>Dica:</b> Escolha um local tranquilo e seja o mais específico(a) possível, detalhando suas ações e resultados reais.</p>
-        <p style="font-size:14px;color:var(--black);font-weight:600;margin:0">Podemos começar? Por favor, clique em <b>Avançar</b> e informe seu Nome Completo para dar início.</p>
       </div>
       <button class="btn btn-primary" onclick="goStep(2)">Avançar →</button>
     </div>
@@ -671,11 +669,11 @@
       </div>
     </div>
 
-    <!-- STEP 4: DISC -->
+    <!-- STEP 4: MAPEAMENTO DE ESTILO DE TRABALHO -->
     <div id="step4" class="card hidden">
-      <span class="section-badge badge-disc">Parte 1 — Perfil DISC</span>
-      <div class="card-title">Perfil Comportamental</div>
-      <div class="card-sub">Escolha a opção que mais descreve você. Não existe resposta certa ou errada. Tempo estimado: 4 minutos.</div>
+      <span class="section-badge badge-disc">Etapa 2 — Estilo de Trabalho</span>
+      <div class="card-title">Mapeamento de Estilo de Trabalho</div>
+      <div class="card-sub">Em cada bloco, marque a frase que <b>MAIS</b> combina e a que <b>MENOS</b> combina com o seu jeito de trabalhar. Não existe resposta certa ou errada — responda com sinceridade. Tempo estimado: 4 minutos.</div>
       <div id="discQuestions"></div>
       <div class="btn-row">
         <button class="btn btn-ghost" onclick="goStep(3)">← Voltar</button>
@@ -768,7 +766,7 @@
     <div class="success-icon">✅</div>
     <h1 class="success-title">Cadastro Concluído!</h1>
     <div class="result-card result-disc">
-      <div class="r-label">Perfil DISC Predominante</div>
+      <div class="r-label">Seu Estilo de Trabalho</div>
       <div class="r-name" id="rDiscName">—</div>
       <div class="r-desc" id="rDiscDesc">—</div>
     </div>
@@ -1203,6 +1201,7 @@ const DISC_PROFILES = {
 
 // STATE
 let discAns={}, attAns={}, metAns={};
+let estiloAns={};
 let allCandidates=[];
 let allVagas=[];
 let isVendedor=false;
@@ -1341,8 +1340,6 @@ document.getElementById("s1Vaga").addEventListener("change", function(){
   const val = this.value;
   isVendedor = (val === "vendedor");
   isGerenteComercial = (val === "gerente");
-  const w = document.getElementById("gcWelcome");
-  if(w) w.classList.toggle("hidden", !isGerenteComercial);
 });
 
 // ── VAGAS EM ABERTO NO CADASTRO DO CANDIDATO ──
@@ -1381,8 +1378,6 @@ window.preencherVagasCandidato = async function(){
   const hint = document.getElementById("s1VagaHint");
   isVendedor = false;
   isGerenteComercial = false;
-  const w = document.getElementById("gcWelcome");
-  if(w) w.classList.add("hidden");
   if(!sel) return;
   if(!empresa){
     sel.innerHTML = '<option value="">Selecione a empresa primeiro...</option>';
@@ -1485,10 +1480,107 @@ function calcMet(){
   return{ top:top?top[0]:"—", scores:totals, avgScore:Math.round(avg*10)/10 };
 }
 
+// ══ MAPEAMENTO DE ESTILO DE TRABALHO (escolha forçada MAIS/MENOS) ══
+// Substitui o DISC de escolha única. Cada frase mapeia um eixo DISC e um dos 5 fatores.
+// (uso interno do RH — o candidato nunca vê essas siglas)
+const ESTILO_BLOCOS = [
+  { opts:[
+    { t:"Busco resultados imediatos, assumindo riscos calculados para superar metas.", disc:"D", big:"abertura" },
+    { t:"Analiso detalhadamente dados e processos antes de tomar qualquer atitude.", disc:"C", big:"conscienciosidade" },
+    { t:"Priorizo manter o clima calmo e a harmonia da equipe em momentos difíceis.", disc:"S", big:"amabilidade" },
+    { t:"Proponho caminhos inovadores e fora da caixa para resolver problemas antigos.", disc:"I", big:"abertura" },
+  ]},
+  { opts:[
+    { t:"Sigo normas, padrões e prazos com disciplina rigorosa.", disc:"C", big:"conscienciosidade" },
+    { t:"Convenço e persuado as pessoas facilmente ao defender minhas ideias.", disc:"I", big:"extroversao" },
+    { t:"Mantenho a calma e o equilíbrio emocional mesmo sob forte estresse.", disc:"S", big:"estabilidade" },
+    { t:"Sou direto, objetivo e cobro agilidade de todos ao meu redor.", disc:"D", big:"extroversao" },
+  ]},
+  { opts:[
+    { t:"Gosto de escutar os outros e dar suporte constante a quem precisa.", disc:"S", big:"amabilidade" },
+    { t:"Prefiro trabalhar com autonomia total na tomada de decisão.", disc:"D", big:"estabilidade" },
+    { t:"Mantenho meus arquivos, metas e agenda impecavelmente organizados.", disc:"C", big:"conscienciosidade" },
+    { t:"Me adapto rapidamente a mudanças repentinas de cenário ou diretrizes.", disc:"I", big:"abertura" },
+  ]},
+  { opts:[
+    { t:"Sou movido por desafios difíceis e competição saudável.", disc:"D", big:"abertura" },
+    { t:"Sinto extrema satisfação ao ver o desenvolvimento de um colega de equipe.", disc:"S", big:"amabilidade" },
+    { t:"Reajo bem a críticas construtivas e busco evoluir com meus erros.", disc:"C", big:"estabilidade" },
+    { t:"Adoro expor minhas ideias em público e contagiar as pessoas ao redor.", disc:"I", big:"extroversao" },
+  ]},
+];
+
+function buildEstilo(){
+  const c=document.getElementById("discQuestions");
+  if(!c) return;
+  c.innerHTML="";
+  const btnBase="border:1px solid var(--gray2);background:#fff;color:var(--gray6);border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;min-width:62px";
+  ESTILO_BLOCOS.forEach((bloco,bi)=>{
+    const div=document.createElement("div");
+    div.className="q-block";
+    div.id=`est_block_${bi}`;
+    const rows=bloco.opts.map((o,oi)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--gray1)">
+        <div style="flex:1;font-size:14px;line-height:1.4">${o.t}</div>
+        <button type="button" id="est_most_${bi}_${oi}" onclick="selecionarEstilo(${bi},${oi},'most')" style="${btnBase}">MAIS</button>
+        <button type="button" id="est_least_${bi}_${oi}" onclick="selecionarEstilo(${bi},${oi},'least')" style="${btnBase}">MENOS</button>
+      </div>`).join("");
+    div.innerHTML=`<div class="q-num" id="est_num_${bi}">Bloco ${bi+1} de ${ESTILO_BLOCOS.length}</div>
+      <div class="q-text">Marque a frase que <b>MAIS</b> e a que <b>MENOS</b> combinam com o seu jeito de trabalhar:</div>
+      <div>${rows}</div>`;
+    c.appendChild(div);
+  });
+}
+
+window.selecionarEstilo=function(bi,oi,tipo){
+  if(!estiloAns[bi]) estiloAns[bi]={most:null,least:null};
+  const a=estiloAns[bi];
+  if(tipo==="most"){ if(a.least===oi) a.least=null; a.most=(a.most===oi?null:oi); }
+  else { if(a.most===oi) a.most=null; a.least=(a.least===oi?null:oi); }
+  ESTILO_BLOCOS[bi].opts.forEach((o,k)=>{
+    const mb=document.getElementById(`est_most_${bi}_${k}`);
+    const lb=document.getElementById(`est_least_${bi}_${k}`);
+    if(mb){ const on=a.most===k; mb.style.background=on?"var(--green)":"#fff"; mb.style.color=on?"#fff":"var(--gray6)"; mb.style.borderColor=on?"var(--green)":"var(--gray2)"; }
+    if(lb){ const on=a.least===k; lb.style.background=on?"#CC0000":"#fff"; lb.style.color=on?"#fff":"var(--gray6)"; lb.style.borderColor=on?"#CC0000":"var(--gray2)"; }
+  });
+  const ok=a.most!==null && a.least!==null;
+  const num=document.getElementById(`est_num_${bi}`);
+  if(num){ num.style.color=ok?"var(--green)":""; num.textContent=ok?`✓ Bloco ${bi+1} de ${ESTILO_BLOCOS.length}`:`Bloco ${bi+1} de ${ESTILO_BLOCOS.length}`; }
+  const n=ESTILO_BLOCOS.filter((_,k)=>estiloAns[k]&&estiloAns[k].most!==null&&estiloAns[k].least!==null).length;
+  const btn=document.getElementById("btnDiscNext");
+  if(btn){ btn.disabled=n<ESTILO_BLOCOS.length; btn.textContent=n>=ESTILO_BLOCOS.length?"Avançar →":`Avançar → (${n}/${ESTILO_BLOCOS.length})`; }
+};
+
+// Calcula DISC (dominante/secundário), 5 fatores (0-100%) e índice de consistência
+function calcEstilo(){
+  const disc={D:0,I:0,S:0,C:0};
+  const big={abertura:0,conscienciosidade:0,extroversao:0,amabilidade:0,estabilidade:0};
+  const bigCount={abertura:0,conscienciosidade:0,extroversao:0,amabilidade:0,estabilidade:0};
+  const mostByDim={D:0,I:0,S:0,C:0};
+  ESTILO_BLOCOS.forEach(b=>b.opts.forEach(o=>{ bigCount[o.big]++; }));
+  ESTILO_BLOCOS.forEach((b,bi)=>{
+    const a=estiloAns[bi]||{};
+    if(a.most!=null){ const o=b.opts[a.most]; disc[o.disc]+=2; big[o.big]+=2; mostByDim[o.disc]++; }
+    if(a.least!=null){ const o=b.opts[a.least]; disc[o.disc]-=1; big[o.big]-=1; }
+  });
+  const clamp=v=>Math.max(0,Math.min(100,v));
+  const discPct={};
+  ["D","I","S","C"].forEach(k=>discPct[k]=clamp(Math.round(((disc[k]+4)/12)*100)));
+  const ordem=Object.entries(disc).sort((a,b)=>b[1]-a[1]);
+  const bigPct={};
+  Object.keys(big).forEach(k=>{ const nn=bigCount[k]||1; bigPct[k]=clamp(Math.round(((big[k]+nn)/(3*nn))*100)); });
+  const domMost=Math.max(...Object.values(mostByDim));
+  let consist;
+  if(domMost>=3) consist={nivel:"Alta", nota:"Escolhas concentradas em um estilo predominante — perfil coerente."};
+  else if(domMost===2) consist={nivel:"Média", nota:"Perfil com dois estilos equilibrados — coerência moderada."};
+  else consist={nivel:"Baixa", nota:"Escolhas dispersas entre vários estilos — recomenda-se checar em entrevista."};
+  return { dominant:ordem[0][0], secondary:ordem[1][0], discScores:disc, discPct, bigPct, consistencia:consist };
+}
+
 // STEPS
 window.startCadastro=function(){
-  discAns={}; attAns={}; metAns={};
-  buildQuestions(DISC_Q,"discQuestions",DISC_Q.length,"btnDiscNext","disc","disc");
+  discAns={}; attAns={}; metAns={}; estiloAns={};
+  buildEstilo();
   buildQuestions(ATT_Q,"attQuestions",ATT_Q.length,"btnAttNext","att","att");
   buildQuestions(MET_Q,"metQuestions",MET_Q.length,"btnSubmit","met","met");
   showScreen("screenCadastro");
@@ -1586,21 +1678,17 @@ window.goStep=async function(step){
     }
   }
 
-  // Validação DISC antes de avançar
+  // Validação do Mapeamento de Estilo de Trabalho antes de avançar
   if(step===5 || step==="4b"){
-    if(Object.keys(discAns).length < DISC_Q.length){
-      const missing=[];
-      for(let i=0;i<DISC_Q.length;i++){ if(discAns[i]===undefined) missing.push(i+1); }
-      showToast(`Responda as questões do DISC: ${missing.join(", ")}`);
-      for(let i=0;i<DISC_Q.length;i++){
-        const numEl=document.getElementById(`disc_num_${i}`);
-        if(!numEl)continue;
-        if(discAns[i]===undefined){
-          numEl.style.color="var(--red)";
-          numEl.textContent=`⚠ Questão ${i+1} — não respondida`;
-          if(i===missing[0]-1) document.getElementById(`disc_block_${i}`).scrollIntoView({behavior:"smooth"});
-        }
-      }
+    const faltam=ESTILO_BLOCOS.map((_,i)=>i).filter(i=>!(estiloAns[i]&&estiloAns[i].most!=null&&estiloAns[i].least!=null));
+    if(faltam.length){
+      showToast(`Marque MAIS e MENOS em todos os blocos. Faltam: ${faltam.map(i=>i+1).join(", ")}`);
+      faltam.forEach(i=>{
+        const numEl=document.getElementById(`est_num_${i}`);
+        if(numEl){ numEl.style.color="var(--red)"; numEl.textContent=`⚠ Bloco ${i+1} — marque MAIS e MENOS`; }
+      });
+      const first=document.getElementById(`est_block_${faltam[0]}`);
+      if(first) first.scrollIntoView({behavior:"smooth"});
       return;
     }
   }
@@ -1661,7 +1749,8 @@ function updateProgress(step, total){
 
 // SUBMIT
 window.submitAll=async function(){
-  const disc=calcDisc();
+  const estilo=calcEstilo();
+  const disc=estilo.dominant;
   const discP=DISC_PROFILES[disc]||{name:"—",desc:"—"};
 
   const vagaSelect=document.getElementById("s1Vaga");
@@ -1696,7 +1785,11 @@ window.submitAll=async function(){
     exp2:{empresa:document.getElementById("e2Emp").value,cargo:document.getElementById("e2Cargo").value,periodo:document.getElementById("e2Per").value},
     exp3:{empresa:document.getElementById("e3Emp").value,cargo:document.getElementById("e3Cargo").value,periodo:document.getElementById("e3Per").value},
     discPerfil:disc,
-    discRespostas:discAns,
+    discSecundario:estilo.secondary,
+    discPct:estilo.discPct,
+    estiloBigFive:estilo.bigPct,
+    estiloConsistencia:estilo.consistencia,
+    discRespostas:estiloAns,
     // Pipeline inicial
     pipeline:"cadastro",
     pipelineLogs:[{etapa:"cadastro",data:new Date().toISOString()}],
@@ -1756,8 +1849,9 @@ window.submitAll=async function(){
     const novoRef=push(ref(db,"candidatos"));
     await set(novoRef, candidato);
     await registrarCPF(candidato.cpf, novoRef.key, candidato.nome, "cadastro");
-    // Tela de sucesso
-    document.getElementById("rDiscName").textContent=discP.name;
+    // Tela de sucesso — nome amigável, sem siglas técnicas (regra de privacidade)
+    const ESTILO_NOMES={D:"Orientado a Resultados",I:"Comunicador e Influente",S:"Colaborativo e Estável",C:"Analítico e Organizado"};
+    document.getElementById("rDiscName").textContent=ESTILO_NOMES[disc]||"—";
     document.getElementById("rDiscDesc").textContent=discP.desc;
     if(isVendedor && candidato.attTopCompetencia){
       document.getElementById("rAttCard").classList.remove("hidden");
@@ -2915,6 +3009,16 @@ window.openModal=function(id){
     <div class="exp-item"><div style="font-weight:700">${e.cargo||"—"}</div>
     <div style="color:var(--gray6)">${e.empresa}</div>
     <div style="font-size:11px;color:#999">${e.periodo||""}</div></div>`).join("");
+  const bf=c.estiloBigFive||null;
+  const bfLabels={abertura:"Abertura a Experiências",conscienciosidade:"Conscienciosidade",extroversao:"Extroversão",amabilidade:"Amabilidade",estabilidade:"Estabilidade Emocional"};
+  const bfBars=bf?Object.keys(bfLabels).map(k=>`
+    <div class="comp-item"><div class="ci-label">${bfLabels[k]}</div><div class="ci-val">${bf[k]}%</div>
+    <div class="ci-bar"><div class="ci-fill" style="width:${bf[k]}%;background:var(--black)"></div></div></div>`).join(""):"";
+  const estiloBox=(bf||c.discSecundario)?`
+    <div class="modal-section">Mapeamento de Estilo — leitura RH (triagem, não é laudo psicológico)</div>
+    <div class="detail-row"><span class="dl">Eixo comportamental (DISC)</span><span class="dv">Dominante: <b>${DISC_PROFILES[c.discPerfil]?.name||c.discPerfil||"—"}</b>${c.discSecundario?` · Secundário: ${DISC_PROFILES[c.discSecundario]?.name||c.discSecundario}`:""}</span></div>
+    ${c.estiloConsistencia?`<div class="detail-row"><span class="dl">Índice de consistência</span><span class="dv"><b>${c.estiloConsistencia.nivel}</b> — <span style="font-weight:400;color:var(--gray6)">${c.estiloConsistencia.nota}</span></span></div>`:""}
+    ${bfBars?`<div style="font-size:11px;color:var(--gray4);margin:10px 0 4px">5 Fatores (leitura indicativa, 0–100%):</div><div class="comp-grid">${bfBars}</div>`:""}`:"";
   const gcResp=c.gcRespostas||null;
   const gcResposta=(titulo,texto)=>`
     <div style="font-weight:700;font-size:13px;margin:10px 0 4px">${titulo}</div>
@@ -2982,6 +3086,7 @@ window.openModal=function(id){
     ${exps?`<div class="modal-section">Experiências</div>${exps}`:""}
     ${attBars?`<div class="modal-section">Atitudes — Scores</div><div class="comp-grid">${attBars}</div>`:""}
     ${metBars?`<div class="modal-section">Metodologia (3B+F-O)K</div><div class="comp-grid">${metBars}</div>`:""}
+    ${estiloBox}
     ${gcBox}`;
   document.getElementById("modalOverlay").classList.remove("hidden");
 };

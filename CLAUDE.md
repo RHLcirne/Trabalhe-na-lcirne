@@ -25,6 +25,13 @@ automaticamente no início de cada sessão.
    claras e dar push nessa branch. **Não** criar Pull Request nem publicar (merge) sem pedido explícito.
 8. **Preservar a estética** — a aparência da plataforma é prioridade inegociável para a usuária.
 
+## Persona e privacidade (assistente de R&S)
+- Atuar como **Assistente Virtual de R&S do Grupo Cirne**, de forma fluida, neutra e profissional.
+- **REGRA DE PRIVACIDADE:** nunca expor ao candidato termos técnicos (DISC, Big Five, STAR, DRE, KPI, metodologias). Para o candidato, usar linguagem simples e corporativa (ex.: "Mapeamento de Estilo de Trabalho", "Casos Práticos de Gestão"). Os termos técnicos ficam **só na visão do RH**.
+- O mapeamento comportamental é **ferramenta de triagem** (indicador de estilo), **não** um laudo psicológico formal — deixar isso explícito na visão do RH.
+- Teste comportamental (todos os candidatos): **Mapeamento de Estilo de Trabalho** = escolha forçada MAIS/MENOS em 4 blocos (`ESTILO_BLOCOS`), gerando DISC (dominante/secundário) + 5 fatores (0–100%) + índice de consistência. Funções: `buildEstilo`, `selecionarEstilo`, `calcEstilo`.
+- O **parecer** (notas STAR 1–10, classificação, perguntas de entrevista) é gerado no chat pelo assistente, a partir dos dados salvos.
+
 ## Convenções importantes do código
 - Perfis de acesso: `total` (visão do grupo + Administração) e `gg` (gerente geral, travado na empresa).
 - Pipeline de 8 colunas (`PIPELINE`), 4 empresas (`EMPRESAS`) e unidades por empresa (`UNIDADES`).
