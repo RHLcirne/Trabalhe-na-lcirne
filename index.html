@@ -2969,7 +2969,10 @@ function fmtDuracao(ms){
   return hr>0?`${d}d ${hr}h`:`${d} dia${d>1?"s":""}`;
 }
 // SLA: quanto tempo o candidato ficou em cada etapa (a última é a atual)
-function slaKanban(c){
+function slaKanban(c, currentCol){
+  // Na coluna "Aprovado" (em processo de admissão) o candidato já concluiu o
+  // processo seletivo — não faz sentido continuar contando o tempo.
+  if((currentCol||c.pipeline)==="aprovado") return "";
   const logs=Array.isArray(c.pipelineLogs)?c.pipelineLogs:[];
   if(!logs.length) return "";
   const agora=Date.now();
@@ -3016,7 +3019,7 @@ function buildKanbanCard(c, currentCol){
     <span class="kc-disc" style="background:${discColor[c.discPerfil||"D"]||"#999"}">${c.discPerfil||"—"}</span>
     ${fbSelo}
     ${motivoHtml}
-    ${slaKanban(c)}
+    ${slaKanban(c, currentCol)}
     ${actionsHtml}
   </div>`;
 }
