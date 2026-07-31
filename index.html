@@ -1813,7 +1813,11 @@ window.preencherCidades=function(){
 // "chaveCidade" ignora acento, maiúsculas e espaços — serve para comparar/agrupar.
 function chaveCidade(s){
   return (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"")
-    .toLowerCase().replace(/\s+/g," ").trim();
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g," ")                 // hífen, barra e pontuação viram espaço
+    .replace(/\s+/g," ").trim()
+    .replace(/ (rn|pb|ce|pe|pa|ba|sp|rj|mg|am|df|se|al|pi|ma|to|go|ms|mt|pr|sc|rs|ro|rr|ap|ac|es)$/,"") // remove sufixo de estado
+    .trim();
 }
 // Mapa: chave normalizada → nome OFICIAL correto (a partir das listas RN e PB)
 const CIDADE_OFICIAL = (function(){
@@ -1821,11 +1825,18 @@ const CIDADE_OFICIAL = (function(){
   [...RN_CIDADES, ...PB_CIDADES].forEach(c=>{ const k=chaveCidade(c); if(!m[k]) m[k]=c; });
   return m;
 })();
-// Devolve o nome correto de uma cidade; se não estiver nas listas, devolve o texto limpo.
+// Coloca em Título (mantendo acentos) e limpa hífens/barras/sufixo de estado.
+function tituloCidade(s){
+  const min=["de","do","da","dos","das","e"];
+  return (s||"").replace(/[\/\-]+/g," ").replace(/\s+(RN|PB)\s*$/i,"")
+    .replace(/\s+/g," ").trim().toLowerCase().split(" ").filter(Boolean)
+    .map((w,i)=> (i>0&&min.includes(w)) ? w : w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+}
+// Devolve o nome OFICIAL correto; se não estiver nas listas, devolve um nome limpo e em Título.
 function cidadeCanonica(s){
   const k=chaveCidade(s);
   if(!k) return "";
-  return CIDADE_OFICIAL[k] || (s||"").replace(/\s+/g," ").trim();
+  return CIDADE_OFICIAL[k] || tituloCidade(s);
 }
 // Mostra o campo de CID quando o candidato é PCD
 window.togglePCD=function(){
