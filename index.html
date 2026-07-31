@@ -1115,6 +1115,22 @@
 
       <div id="cfgSolicitacoes"></div>
       <div id="cfgListaUsuarios"></div>
+
+      <!-- Manutenção de dados: padronizar/limpar cidades (só visão total) -->
+      <div class="admin-only" style="background:#fff;border:1px solid var(--gray2);border-radius:12px;padding:18px;margin-top:22px">
+        <div style="font-weight:800;margin-bottom:6px">🧹 Manutenção — Padronizar e limpar cidades</div>
+        <div style="font-size:12px;color:var(--gray6);margin-bottom:12px;line-height:1.55">
+          Corrige o nome das cidades para o padrão oficial e <b>apaga os candidatos cadastrados fora do RN e da PB</b>.
+          Clique em <b>Analisar</b> para ver o que será alterado, <b>baixe o backup</b> e só então <b>Aplique</b>.
+          <span style="color:var(--red);font-weight:700">Esta ação não pode ser desfeita.</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn-nova-vaga" style="background:var(--gray6)" onclick="analisarLimpezaCidades()">🔎 Analisar</button>
+          <button type="button" class="btn-nova-vaga" style="background:var(--black)" onclick="baixarBackupCandidatos()">💾 Baixar backup</button>
+          <button type="button" class="btn-nova-vaga" onclick="aplicarLimpezaCidades()">🧹 Aplicar limpeza</button>
+        </div>
+        <div id="cfgLimpezaResultado" style="margin-top:14px"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -2433,6 +2449,82 @@ window.deleteCandidate=async function(candId, nome){
   }catch(e){
     showToast("Erro ao excluir candidato. Tente novamente.");
     console.error("Delete error:", e);
+  }
+};
+
+// ── MANUTENÇÃO: padronizar e limpar cidades ──
+// Percorre os candidatos e separa: os de FORA do RN/PB (para apagar) e os
+// que estão no RN/PB mas com o nome escrito diferente do oficial (para corrigir).
+function _analisarCidades(){
+  const foraRegiao=[], corrigir=[], semCidade=[];
+  allCandidates.forEach(c=>{
+    const cid=(c.cidade||"").trim();
+    if(!cid){ semCidade.push(c); return; }
+    const oficial = CIDADE_OFICIAL[chaveCidade(cid)]; // só existe para cidades do RN/PB
+    if(!oficial){ foraRegiao.push(c); }
+    else if(oficial!==cid){ corrigir.push({c, de:cid, para:oficial}); }
+  });
+  return {foraRegiao, corrigir, semCidade};
+}
+
+window.analisarLimpezaCidades=function(){
+  if(!isTotal()){ showToast("Ação restrita ao perfil de Diretoria / RH"); return; }
+  const {foraRegiao, corrigir, semCidade}=_analisarCidades();
+  const box=document.getElementById("cfgLimpezaResultado");
+  const linhaFora = foraRegiao.length
+    ? `<ul style="margin:6px 0 0;padding-left:18px;font-size:12px;color:var(--gray6)">${foraRegiao.map(c=>`<li>${c.nome||"—"} — <b>${c.cidade}</b></li>`).join("")}</ul>`
+    : `<div style="font-size:12px;color:var(--gray6)">Nenhum.</div>`;
+  const linhaCorr = corrigir.length
+    ? `<ul style="margin:6px 0 0;padding-left:18px;font-size:12px;color:var(--gray6)">${corrigir.map(x=>`<li>${x.c.nome||"—"}: "${x.de}" → <b>${x.para}</b></li>`).join("")}</ul>`
+    : `<div style="font-size:12px;color:var(--gray6)">Nenhuma.</div>`;
+  box.innerHTML=`
+    <div style="border:1px solid var(--gray2);border-radius:10px;padding:14px;background:var(--gray1)">
+      <div style="font-weight:800;color:var(--red);margin-bottom:4px">🗑️ Serão APAGADOS (fora do RN/PB): ${foraRegiao.length}</div>
+      ${linhaFora}
+      <div style="font-weight:800;margin:14px 0 4px">✏️ Cidades a corrigir: ${corrigir.length}</div>
+      ${linhaCorr}
+      <div style="font-size:12px;color:var(--gray4);margin-top:12px">Sem cidade informada (não serão mexidos): ${semCidade.length}</div>
+      <div style="font-size:12px;color:var(--red);font-weight:700;margin-top:10px">Confira a lista acima, baixe o backup e clique em “Aplicar limpeza”.</div>
+    </div>`;
+};
+
+window.baixarBackupCandidatos=function(){
+  if(!isTotal()){ showToast("Ação restrita ao perfil de Diretoria / RH"); return; }
+  const dados=JSON.stringify(allCandidates,null,2);
+  const blob=new Blob([dados],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="backup-candidatos.json"; document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
+  showToast("💾 Backup baixado. Guarde este arquivo antes de aplicar a limpeza.");
+};
+
+window.aplicarLimpezaCidades=async function(){
+  if(!isTotal()){ showToast("Ação restrita ao perfil de Diretoria / RH"); return; }
+  const {foraRegiao, corrigir}=_analisarCidades();
+  if(!foraRegiao.length && !corrigir.length){ showToast("Nada a fazer — as cidades já estão padronizadas."); return; }
+  if(!confirm(`ATENÇÃO — ação irreversível.\n\n• Candidatos que serão APAGADOS (fora do RN/PB): ${foraRegiao.length}\n• Cidades que serão CORRIGIDAS: ${corrigir.length}\n\nVocê já baixou o backup? Deseja continuar?`)) return;
+  let del=0, upd=0;
+  try{
+    for(const c of foraRegiao){
+      await remove(ref(db,`candidatos/${c.id}`));
+      const d=cpfDigitos(c.cpf);
+      if(d.length===11){ try{ await remove(ref(db,`cpfIndex/${d}`)); }catch(e){ console.error(e); } }
+      del++;
+    }
+    for(const x of corrigir){
+      await update(ref(db,`candidatos/${x.c.id}`), {cidade:x.para});
+      x.c.cidade=x.para;   // reflete localmente
+      upd++;
+    }
+    const apagados=new Set(foraRegiao.map(c=>c.id));
+    allCandidates=allCandidates.filter(c=>!apagados.has(c.id));
+    renderDashboard(); renderStats(); renderTable(); renderKanban(); renderVagas && renderVagas(); renderTalentos && renderTalentos();
+    analisarLimpezaCidades();
+    showToast(`✅ Limpeza concluída: ${del} apagado(s), ${upd} corrigido(s).`);
+  }catch(e){
+    console.error("Erro na limpeza:", e);
+    showToast(`Erro durante a limpeza (${del} apagados, ${upd} corrigidos antes da falha). Veja o backup.`);
   }
 };
 
