@@ -681,7 +681,7 @@
     <!-- STEP 3: EXPERIÊNCIAS -->
     <div id="step3" class="card hidden">
       <div class="card-title">Experiências Profissionais</div>
-      <div class="card-sub">Informe até 3 experiências anteriores. Não tem experiência? Pule e avance.</div>
+      <div class="card-sub" id="exp3Sub">Informe até 3 experiências anteriores.</div>
       <div class="exp-group">
         <div class="exp-title">1ª Experiência</div>
         <div class="field"><label>Empresa</label><input type="text" id="e1Emp" placeholder="Nome da empresa"></div>
@@ -1921,6 +1921,28 @@ window.goStep=async function(step){
     if(!ultCart && !primEmp){
       showToast("Informe a data da última carteira assinada ou marque 'primeiro emprego'");
       return;
+    }
+    // Ajusta o aviso da tela de experiências conforme "primeiro emprego"
+    const sub=document.getElementById("exp3Sub");
+    if(sub){
+      sub.innerHTML = primEmp
+        ? "Como você marcou <b>primeiro emprego</b>, esta etapa é opcional."
+        : "Informe ao menos <b>1 experiência</b> (empresa e cargo). As demais são opcionais.";
+    }
+  }
+
+  // Ao sair das Experiências: se NÃO for primeiro emprego, exige 1 experiência
+  if(step===4){
+    const primEmp=document.getElementById("s2PrimeiroEmprego").checked;
+    if(!primEmp){
+      const blocos=[["e1Emp","e1Cargo"],["e2Emp","e2Cargo"],["e3Emp","e3Cargo"]];
+      const temUma=blocos.some(([e,c])=>
+        document.getElementById(e).value.trim() && document.getElementById(c).value.trim());
+      if(!temUma){
+        showToast("Preencha ao menos 1 experiência (empresa e cargo) — ou marque 'primeiro emprego' na etapa anterior.");
+        document.getElementById("e1Emp").focus();
+        return;
+      }
     }
   }
 
