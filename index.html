@@ -3346,6 +3346,45 @@ window.salvarTrocaUnidade=async function(id){
   }catch(e){ showToast("Erro ao alterar unidade: "+(e?.message||e)); console.error(e); }
 };
 
+// ── Corrigir estado/cidade de um candidato pela ficha ──
+window.abrirTrocaCidade=function(id){
+  if(!isTotal()){ showToast("Alterar cidade é restrito à Diretoria / RH"); return; }
+  const w=document.getElementById("trocaCidadeWrap_"+id);
+  if(w){ w.classList.remove("hidden"); preencherTrocaCidade(id); }
+};
+window.cancelarTrocaCidade=function(id){
+  const w=document.getElementById("trocaCidadeWrap_"+id); if(w) w.classList.add("hidden");
+};
+window.preencherTrocaCidade=function(id){
+  const uf=document.getElementById("trocaEstadoSel_"+id).value;
+  const sel=document.getElementById("trocaCidadeSel_"+id);
+  if(!sel) return;
+  const lista = uf==="RN"?RN_CIDADES : uf==="PB"?PB_CIDADES : [];
+  if(!lista.length){ sel.innerHTML='<option value="">Selecione o estado primeiro...</option>'; sel.disabled=true; return; }
+  const c=allCandidates.find(x=>x.id===id);
+  const kAtual=chaveCidade(c&&c.cidade);   // pré-seleciona a cidade atual, se existir na lista
+  sel.disabled=false;
+  sel.innerHTML='<option value="">Selecionar cidade...</option>'+
+    lista.map(x=>`<option${chaveCidade(x)===kAtual?" selected":""}>${x}</option>`).join("");
+};
+window.salvarTrocaCidade=async function(id){
+  if(!isTotal()){ showToast("Ação restrita ao perfil de Diretoria / RH"); return; }
+  const c=allCandidates.find(x=>x.id===id); if(!c) return;
+  const uf=document.getElementById("trocaEstadoSel_"+id).value;
+  const cidade=document.getElementById("trocaCidadeSel_"+id).value;
+  if(!uf){ showToast("Selecione o estado (RN ou PB)"); return; }
+  if(!cidade){ showToast("Selecione a cidade"); return; }
+  try{
+    await update(ref(db,`candidatos/${id}`),{ estado:uf, cidade:cidade });
+    c.estado=uf; c.cidade=cidade;
+    const span=document.getElementById("cidAtual_"+id);
+    if(span) span.innerHTML=`${c.bairro||"—"} / ${c.cidade||"—"}${c.estado?` - ${c.estado}`:""}${c.cep?` — CEP ${c.cep}`:""}`;
+    const w=document.getElementById("trocaCidadeWrap_"+id); if(w) w.classList.add("hidden");
+    renderTable(); renderKanban(); renderTalentos();
+    showToast(`✅ Cidade atualizada para ${cidade}.`);
+  }catch(e){ showToast("Erro ao alterar cidade: "+(e?.message||e)); console.error(e); }
+};
+
 window.moveCandidate=async function(candId, newCol, motivo){
   const c=allCandidates.find(x=>x.id===candId);
   if(!c)return;
@@ -3653,7 +3692,28 @@ window.openModal=function(id){
     <div class="detail-row"><span class="dl">Telefone</span><span class="dv">${c.telefone||"—"}</span></div>
     <div class="detail-row"><span class="dl">E-mail</span><span class="dv">${c.email||"—"}</span></div>
     <div class="detail-row"><span class="dl">Endereço</span><span class="dv">${c.rua?`${c.rua}, ${c.numero||"s/n"}${c.complemento?` — ${c.complemento}`:""}`:"—"}</span></div>
-    <div class="detail-row"><span class="dl">Bairro / Cidade</span><span class="dv">${c.bairro||"—"} / ${c.cidade||"—"}${c.estado?` - ${c.estado}`:""}${c.cep?` — CEP ${c.cep}`:""}</span></div>
+    <div class="detail-row">
+      <span class="dl">Bairro / Cidade</span>
+      <span class="dv" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <span id="cidAtual_${c.id}" style="font-weight:700">${c.bairro||"—"} / ${c.cidade||"—"}${c.estado?` - ${c.estado}`:""}${c.cep?` — CEP ${c.cep}`:""}</span>
+        <button class="admin-only" onclick="abrirTrocaCidade('${c.id}')" style="background:var(--gray2);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">✏️ Alterar</button>
+      </span>
+    </div>
+    <div id="trocaCidadeWrap_${c.id}" class="hidden" style="background:var(--gray1);border:1px solid var(--gray2);border-radius:10px;padding:14px;margin:6px 0 14px">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--gray6);margin-bottom:8px">Corrigir estado / cidade do candidato</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="trocaEstadoSel_${c.id}" onchange="preencherTrocaCidade('${c.id}')" style="width:90px;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff">
+          <option value="">UF</option>
+          <option value="RN"${c.estado==="RN"?" selected":""}>RN</option>
+          <option value="PB"${c.estado==="PB"?" selected":""}>PB</option>
+        </select>
+        <select id="trocaCidadeSel_${c.id}" style="flex:1;min-width:180px;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff">
+          <option value="">Selecione o estado primeiro...</option>
+        </select>
+        <button onclick="cancelarTrocaCidade('${c.id}')" style="background:var(--gray2);color:var(--black);border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Cancelar</button>
+        <button onclick="salvarTrocaCidade('${c.id}')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Salvar</button>
+      </div>
+    </div>
     <div class="detail-row"><span class="dl">Sexo</span><span class="dv">${c.sexo==="F"?"Feminino":c.sexo==="M"?"Masculino":(c.sexo||"—")}</span></div>
     <div class="detail-row"><span class="dl">PCD</span><span class="dv">${c.pcd==="Sim"?`Sim${c.cid?` — CID: <b>${c.cid}</b>`:""}`:(c.pcd||"—")}</span></div>
     <div class="detail-row"><span class="dl">Estado Civil</span><span class="dv">${c.estadoCivil||"—"}</span></div>
